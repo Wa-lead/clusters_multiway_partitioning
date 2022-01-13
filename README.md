@@ -3,9 +3,8 @@
 # How to run: 
 1. clone the project: https://github.com/Wa-lead/NetworkPLOT.git
 2. in the terminal run: pip install matplotlib
-3. in the terminal run: pip install numpy
-4. run the script
+3. run the script
 
 
-![Screenshot 2022-01-10 005142](https://user-images.githubusercontent.com/81301826/148702476-35541a98-9c34-4dda-a1d4-dd28b99c26b3.png)
 
+<img width="440" alt="Screenshot 2022-01-13 143847" src="https://user-images.githubusercontent.com/81301826/149323743-87fff4ff-cd8a-4e2e-8757-99d31de8f29d.png">
