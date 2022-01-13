@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 
 array_database = []
 
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                            #Preparing the poisson distribution pibts
 #Simulation window parameters
 xMin=0;xMax=14
 yMin=0;yMax=14
@@ -24,6 +26,9 @@ lambda0=1; #intensity (ie mean density) of the Poisson process
 numbPoints = (scipy.stats.poisson( lambda0*areaTotal ).rvs())#Poisson number of points
 x = xDelta*scipy.stats.uniform.rvs(0,1,((numbPoints,1)))+xMin#x coordinates of Poisson points
 y = yDelta*scipy.stats.uniform.rvs(0,1,((numbPoints,1)))+yMin#y coordinates of Poisson points
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                            #Preparing The data point data base
 
 #create dictionary - associative array  - that holds all points as objects, the infected attribute is random (1= infected, 0= healthy)
 for i in range(numbPoints):
@@ -45,6 +50,8 @@ for index_first_point in range(numbPoints):#x
         array_database= sorted(array_database, key=lambda x:x['infected'], reverse=True)
 
 
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                            #Plotting the points on graph
 
 #plots the points on the graph, if the point is healthy make it green, else red
 for index in range(numbPoints):
@@ -70,11 +77,13 @@ for index_first_point in range(numbPoints):
             pointY = [point1['y'], point2['y']]
             plt.plot(pointX, pointY)
 
-#range boundaries
-plt.plot([2,2], [2,12],color='black')
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                            #Drawing the boundries of the range
 plt.plot([2,12], [12,12],color='black')
 plt.plot([12,12], [12,2],color='black')
 plt.plot([12,2], [2,2], color='black')
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 plt.show()
