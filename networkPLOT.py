@@ -79,6 +79,7 @@ for index_first_point in range(numbPoints):
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                             #Drawing the boundries of the range
+plt.plot([2,2], [2,12],color='black')
 plt.plot([2,12], [12,12],color='black')
 plt.plot([12,12], [12,2],color='black')
 plt.plot([12,2], [2,2], color='black')
