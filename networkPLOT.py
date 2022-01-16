@@ -20,7 +20,7 @@ yDelta=yMax-yMin; #rectangle dimensions
 areaTotal=xDelta*yDelta
  
 #Point process parameters
-lambda0=1; #intensity (ie mean density) of the Poisson process
+lambda0=2; #intensity (ie mean density) of the Poisson process
  
 #Simulate Poisson point process
 numbPoints = (scipy.stats.poisson( lambda0*areaTotal ).rvs())#Poisson number of points
@@ -39,16 +39,31 @@ array_database= sorted(array_database, key=lambda x:x['infected'], reverse=True)
 
 #iterated through the array and make every infected node "infects" its neighbors 
 for index_first_point in range(numbPoints):#x
+    pointEdges = [0]*numbPoints
     for index_second_point in range(numbPoints):
         point1= array_database[index_first_point]
         point2= array_database[index_second_point]
         distance = sqrt((point1['x']-point2['x'])**2+(point1['y']-point2['y'])**2)
         if distance <= 1: # the initial assumption is that only nodes within 1 kilometers of each other can connect
+            pointEdges[index_second_point] = 1
             if point1['infected']==1 or point2['infected']==1:
                 point1['infected'] = 1
                 point2['infected'] = 1
         array_database= sorted(array_database, key=lambda x:x['infected'], reverse=True)
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                            #Prepare the edgeMatrix
+                                                            #Why? because we want to assign cost to each edge
+edgeMatrix = []
 
+for index_first_point in range(numbPoints):#x
+    pointEdges = [0]*numbPoints
+    for index_second_point in range(numbPoints):
+        point1= array_database[index_first_point]
+        point2= array_database[index_second_point]
+        distance = sqrt((point1['x']-point2['x'])**2+(point1['y']-point2['y'])**2)
+        if distance <= 1: # the initial assumption is that only nodes within 1 kilometers of each other can connect
+            pointEdges[index_second_point] = 1
+    edgeMatrix.append(pointEdges)
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                             #Plotting the points on graph
@@ -71,8 +86,7 @@ for index_first_point in range(numbPoints):
     for index_second_point in range(numbPoints):
         point1= array_database[index_first_point]
         point2= array_database[index_second_point]
-        distance = sqrt((point1['x']-point2['x'])**2+(point1['y']-point2['y'])**2)
-        if distance <= 1: # the initial assumption is that only nodes within 1 kilometers of each other can connect
+        if edgeMatrix[index_first_point][index_second_point] == 1: # the initial assumption is that only nodes within 1 kilometers of each other can connect
             pointX = [point1['x'], point2['x']]
             pointY = [point1['y'], point2['y']]
             plt.plot(pointX, pointY)
