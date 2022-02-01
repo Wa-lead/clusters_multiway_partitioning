@@ -1,5 +1,19 @@
+from dis import dis
+import numpy as np
+import matplotlib.pyplot as plt
+from math import sqrt
+import random
+import numpy as np
+import scipy.stats
+import matplotlib.pyplot as plt
+from k_means_constrained import KMeansConstrained
 
-def twoWayPartitioning(subsetA,subsetB,edgeMatrix):
+def twoWayPartitioning(A,B,edgeMatrix,groups):
+    subsetA = A['subset']
+    subsetB = B['subset']
+    groupA = A['group']
+    groupB = B['group']
+    indicator = 0
     while True:
         for index1 in range(len(subsetA)):
             ineternalCost = 0
@@ -84,5 +98,23 @@ def twoWayPartitioning(subsetA,subsetB,edgeMatrix):
         #add the interchanged points to their new sets
         subsetA = subsetA + GBuffer[0]['Ystar']
         subsetB = subsetB + GBuffer[0]['Xstar']
+        indicator = indicator + 1
 
-        return subsetA ,subsetB
+        for i in range(len(subsetA)): # update the group array
+            groups[subsetA[i]['index']] = groupA
+            groups[subsetB[i]['index']] = groupB
+
+
+    return subsetA ,subsetB, indicator, groups
+
+
+def divideIntoEvenClusters(x,y, numberOfClusters):
+    numbPoints = len(x)
+    changeFormatArray =[] 
+    for i in range(len(x)): #here is merely changing the format of the array
+        changeFormatArray.append([x[i],y[i]])
+    X = np.array(changeFormatArray)
+    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints/numberOfClusters, size_max=numbPoints/numberOfClusters)
+    kmeans.fit(X)
+    return kmeans.labels_
+

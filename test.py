@@ -7,8 +7,9 @@ import random
 import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
-from Algorithem import twoWayPartitioning
+from Algorithem import twoWayPartitioning, divideIntoEvenClusters
 from sklearn.cluster import KMeans
+from k_means_constrained import KMeansConstrained
 
 
 
@@ -30,33 +31,35 @@ lambda0=1; #intensity (ie mean density) of the Poisson process
  
 #Simulate Poisson point process
 numbPoints = (scipy.stats.poisson( lambda0*areaTotal ).rvs())*5#Poisson number of points # multiply by 2 to make it always even
-x = xDelta*scipy.stats.uniform.rvs(0,1,((numbPoints,1)))+xMin#x coordinates of Poisson points
-y = yDelta*scipy.stats.uniform.rvs(0,1,((numbPoints,1)))+yMin#y coordinates of Poisson 
+x = np.random.uniform(size= numbPoints, low = xMin, high =xMax)# coordinates of Poisson points
+y = np.random.uniform(size= numbPoints, low = yMin, high =yMax)#y coordinates of Poisson 
 
-array =[]
+print(x[0])
 
-for i in range(len(x)):
-    array.append([x[i][0],y[i][0]])
+# array =[]
 
-X = np.array(array)
+# for i in range(len(x)):
+#     array.append([x[i][0],y[i][0]])
 
-kmeans = KMeans(n_clusters=5, algorithm='full')
-kmeans.fit(X)
-print(kmeans.labels_)
+# X = np.array(array)
 
-zero = 0
-one = 0
+# kmeans = KMeansConstrained(n_clusters=5, size_min=numbPoints/5, size_max=numbPoints/5)
+# kmeans.fit(X)
+# print(kmeans.labels_)
 
-for label in kmeans.labels_:
-    if label == 0:
-        zero += 1
-    elif label == 1:
-        one += 1
+# zero = 0
+# one = 0
 
-
-print(one)
-print(zero)
+# for label in kmeans.labels_:
+#     if label == 0:
+#         zero += 1
+#     elif label == 1:
+#         one += 1
 
 
-plt.scatter(X[:,0],X[:,1], c=kmeans.labels_, cmap='rainbow')
-plt.show()
+# print(one)
+# print(zero)
+
+
+# plt.scatter(X[:,0],X[:,1], c=kmeans.labels_, cmap='rainbow')
+# plt.show()
