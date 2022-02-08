@@ -1,5 +1,16 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from math import sqrt
+import numpy as np
+import matplotlib.pyplot as plt
+from k_means_constrained import KMeansConstrained
 
-def twoWayPartitioning(subsetA,subsetB,edgeMatrix):
+def twoWayPartitioning(A,B,edgeMatrix,groups):
+    subsetA = A['subset']
+    subsetB = B['subset']
+    groupA = A['group']
+    groupB = B['group']
+    indicator = 0
     while True:
         for index1 in range(len(subsetA)):
             ineternalCost = 0
@@ -76,13 +87,95 @@ def twoWayPartitioning(subsetA,subsetB,edgeMatrix):
             break
 
         for point in GBuffer[0]['Xstar']:
+            point['group'] = groupB
             subsetA.remove(point)
 
         for point in GBuffer[0]['Ystar']:
+            point['group'] = groupA
             subsetB.remove(point)   
 
         #add the interchanged points to their new sets
         subsetA = subsetA + GBuffer[0]['Ystar']
         subsetB = subsetB + GBuffer[0]['Xstar']
+        indicator = indicator + 1
 
-        return subsetA ,subsetB
+        for i in range(len(subsetA)): # update the group array
+            groups[subsetA[i]['index']] = groupA
+            groups[subsetB[i]['index']] = groupB
+
+
+    return subsetA ,subsetB, indicator, groups
+
+
+def divideIntoEvenClusters(x,y, numberOfClusters):
+    numbPoints = len(x)
+    changeFormatArray =[] 
+    for i in range(len(x)): #here is merely changing the format of the array
+        changeFormatArray.append([x[i],y[i]])
+    X = np.array(changeFormatArray)
+    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints/numberOfClusters, size_max=numbPoints/numberOfClusters)
+    kmeans.fit(X)
+    return kmeans.labels_
+
+
+
+def getClustersPoints(numberOfClusters, array_database):
+    arrayOfSubsets = [] 
+    for i in range(numberOfClusters):
+        arrayOfSubsets.append({'group': i, 'subset': []})
+        for point in array_database:
+            if(point['group'] == i):
+                arrayOfSubsets[i]['subset'].append(point)
+    return arrayOfSubsets
+
+
+
+def findOuterEdges(arrayOfSubsets, array_database,edgeMatrix):
+    numbPoints = len(array_database)
+    numberOfClusters = len(arrayOfSubsets)
+    arrayOfEdgePoints = []
+    for i in range(numberOfClusters):
+        groupArray = arrayOfSubsets[i]['subset']
+        for j in range(len(groupArray)):
+            externalEdgesCounter = 0
+            point1 = groupArray[j]
+            for k in range(numbPoints):
+                point2 = array_database[k]
+                differntGroups = not ( point1['group'] == point2['group'])
+                if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
+                    externalEdgesCounter = externalEdgesCounter + 1
+            if(externalEdgesCounter > 0):
+                arrayOfEdgePoints.append({'point': point1, 'outerEdges': externalEdgesCounter})
+
+    arrayOfEdgePoints = sorted(arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
+    print(len(arrayOfEdgePoints))
+    return arrayOfEdgePoints
+
+
+
+
+
+
+
+
+
+
+
+    # def findOuterEdges(arrayOfSubsets, array_database,edgeMatrix):
+    # numbPoints = len(array_database)
+    # numberOfClusters = len(arrayOfSubsets)
+    # arrayOfEdgePoints = []
+    # for i in range(numberOfClusters):
+    #     arrayOfEdgePoints.append([])
+    #     groupArray = arrayOfSubsets[i]['subset']
+    #     for j in range(len(groupArray)):
+    #         externalEdgesCounter = 0
+    #         point1 = groupArray[j]
+    #         for k in range(numbPoints):
+    #             point2 = array_database[k]
+    #             differntGroups = not ( point1['group'] == point2['group'])
+    #             if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
+    #                 externalEdgesCounter = externalEdgesCounter + 1
+    #         if(externalEdgesCounter != 0):
+    #             arrayOfEdgePoints[i].append({'point': point1['index'], 'outerEdges': externalEdgesCounter})
+    # return arrayOfEdgePoints
