@@ -11,7 +11,7 @@ from collections import Counter
 
 fig, ax = plt.subplots(2, figsize=(8, 14))
 connectingDistance = 1
-numberOfClusters = 2
+numberOfClusters = 4
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -24,7 +24,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 0.5
+lambda0 = 0.8
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -32,7 +32,6 @@ y = np.random.uniform(size=numbPoints, low=yMin,
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Dividing the set into several even-size clusters
 groups = divideIntoEvenClusters(x, y, numberOfClusters)
-
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing The data point data base
 
@@ -98,34 +97,47 @@ while i < numberOfClusters:
 
 arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
 arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
+# print(arrayOfEdgePoints)
+# print(len(arrayOfEdgePoints))
+# for i in range (numbPoints):
+#     if edgeMatrix[arrayOfEdgePoints[0]['point']['index']][i] == 1:
+#         edgeMatrix[arrayOfEdgePoints[0]['point']['index']][i] = 2
+#         edgeMatrix[i][arrayOfEdgePoints[0]['point']['index']] = 2
 
-for element in arrayOfEdgePoints:
-    for i in range(numbPoints):
-        if edgeMatrix[element['point']['index']][i] == 1:
-            edgeMatrix[element['point']['index']][i] = 2
-            edgeMatrix[i][element['point']['index']] = 2
+# arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
+# print(arrayOfEdgePoints)
+# print(len(arrayOfEdgePoints))
+
+
+while arrayOfEdgePoints:
+    for point in array_database:
+        firstOuterPoint = arrayOfEdgePoints[0]['point']['index']
+        secondOuterPoint = point['index']
+        if edgeMatrix[firstOuterPoint][secondOuterPoint] == 1:
+            edgeMatrix[firstOuterPoint][secondOuterPoint] = 2
+            edgeMatrix[secondOuterPoint][firstOuterPoint] = 2
     arrayOfEdgePoints.pop(0)['point']['infected'] = 2
     arrayOfEdgePoints = findOuterEdges(
         arrayOfSubsets, array_database, edgeMatrix)
+
 
 firewalls = []
 for point in array_database:
     if point['infected'] == 2:
         firewalls.append(point)
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Plotting the points on graph
         # iterates through the the array and connects every node within distance 1 kilometer
-for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point, numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        # the initial assumption is that only nodes within 1 kilometers of each other can connect
-        if edgeMatrix[index_first_point][index_second_point] != 0:
-            pointX = [point1['x'], point2['x']]
-            pointY = [point1['y'], point2['y']]
-            # isInA = point1 in arrayOfSubsets[0]
-            # isInB = point1 in arrayOfSubsets[1]
-            ax[1].plot(pointX, pointY, 'grey')
+# for index_first_point in range(numbPoints):
+#     for index_second_point in range(index_first_point, numbPoints):
+#         point1 = array_database[index_first_point]
+#         point2 = array_database[index_second_point]
+#         if edgeMatrix[index_first_point][index_second_point] != 0:
+#             pointX = [point1['x'], point2['x']]
+#             pointY = [point1['y'], point2['y']]
+
+#             ax[1].plot(pointX, pointY, 'grey')
 
 # plots the points on the graph, if the point is healthy make it green, else red
 array_database = sorted(array_database, key=lambda x: x['index'])
@@ -136,7 +148,8 @@ for point in firewalls:
     conver.append([point['x'],point['y']])
 
 X = np.array(conver)
-ax[1].scatter(X[:,0],X[:,1], c='green')
+if len(X) != 0:
+    ax[1].scatter(X[:,0],X[:,1], c='green')
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -148,8 +161,4 @@ ax[1].plot([12, 2], [2, 2], color='black')
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<<<<<<< Updated upstream
 plt.show()
-=======
-plt.show()
->>>>>>> Stashed changes

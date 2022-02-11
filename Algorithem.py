@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from k_means_constrained import KMeansConstrained
 
-def twoWayPartitioning(A,B,edgeMatrix,groups):
+
+def twoWayPartitioning(A, B, edgeMatrix, groups):
     subsetA = A['subset']
     subsetB = B['subset']
     groupA = A['group']
@@ -15,24 +16,29 @@ def twoWayPartitioning(A,B,edgeMatrix,groups):
         for index1 in range(len(subsetA)):
             ineternalCost = 0
             externalCost = 0
-            for index2 in range(len(subsetA)): ## length of both subsets are the same
-                ineternalCost += edgeMatrix[subsetA[index1]['index']][subsetA[index2]['index']]
-                externalCost += edgeMatrix[subsetA[index1]['index']][subsetB[index2]['index']]
+            # length of both subsets are the same
+            for index2 in range(len(subsetA)):
+                ineternalCost += edgeMatrix[subsetA[index1]
+                                            ['index']][subsetA[index2]['index']]
+                externalCost += edgeMatrix[subsetA[index1]
+                                           ['index']][subsetB[index2]['index']]
             subsetA[index1]['Dvalue'] = externalCost - ineternalCost
-            
 
         for index1 in range(len(subsetB)):
             ineternalCost = 0
-            externalCost =0
-            for index2 in range(len(subsetB)): ## length of both subsets are the same
-                ineternalCost += edgeMatrix[subsetB[index1]['index']][subsetB[index2]['index']]
-                externalCost += edgeMatrix[subsetB[index1]['index']][subsetA[index2]['index']]
+            externalCost = 0
+            # length of both subsets are the same
+            for index2 in range(len(subsetB)):
+                ineternalCost += edgeMatrix[subsetB[index1]
+                                            ['index']][subsetB[index2]['index']]
+                externalCost += edgeMatrix[subsetB[index1]
+                                           ['index']][subsetA[index2]['index']]
             subsetB[index1]['Dvalue'] = externalCost - ineternalCost
 
-        subsetA= sorted(subsetA, key=lambda x:x['Dvalue'], reverse=True)
-        subsetB= sorted(subsetB, key=lambda x:x['Dvalue'], reverse=True)
+        subsetA = sorted(subsetA, key=lambda x: x['Dvalue'], reverse=True)
+        subsetB = sorted(subsetB, key=lambda x: x['Dvalue'], reverse=True)
 
-        #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         G = 0
 
@@ -40,7 +46,7 @@ def twoWayPartitioning(A,B,edgeMatrix,groups):
         Ystar = []
         GBuffer = []
 
-        #copies are used to maintain the state of the original sets
+        # copies are used to maintain the state of the original sets
         subsetACopy = subsetA.copy()
         subsetBCopy = subsetB.copy()
 
@@ -48,79 +54,83 @@ def twoWayPartitioning(A,B,edgeMatrix,groups):
             gain = -10000
             indexOfa1 = 0
             indexOfb1 = 0
-            #find the highest gain
+            # find the highest gain
             for j in range(len(subsetACopy)):
                 for k in range(len(subsetACopy)):
-                    newGain = subsetACopy[j]['Dvalue'] + subsetBCopy[k]['Dvalue'] - 2*edgeMatrix[subsetACopy[j]['index']][subsetBCopy[k]['index']]
+                    newGain = subsetACopy[j]['Dvalue'] + subsetBCopy[k]['Dvalue'] - \
+                        2*edgeMatrix[subsetACopy[j]['index']
+                                     ][subsetBCopy[k]['index']]
                     if newGain > gain:
                         gain = newGain
                         indexOfa1 = j
                         indexOfb1 = k
-            
-            G+= gain
-        
-            #Recalculating the Dvalue of each in the session
+
+            G += gain
+
+            # Recalculating the Dvalue of each in the session
             for j in range(len(subsetACopy)):
-                subsetACopy[j]['Dvalue'] = subsetACopy[j]['Dvalue'] +  2*edgeMatrix[subsetACopy[j]['index']][subsetACopy[indexOfa1]['index']] - 2*edgeMatrix[subsetACopy[j]['index']][subsetBCopy[indexOfb1]['index']]
-                subsetBCopy[j]['Dvalue'] = subsetBCopy[j]['Dvalue'] +  2*edgeMatrix[subsetBCopy[j]['index']][subsetBCopy[indexOfb1]['index']] - 2*edgeMatrix[subsetBCopy[j]['index']][subsetACopy[indexOfa1]['index']]
-            
-            ##------------------------------------------- the mistake is here, fix the popping problem
+                subsetACopy[j]['Dvalue'] = subsetACopy[j]['Dvalue'] + 2*edgeMatrix[subsetACopy[j]['index']
+                                                                                   ][subsetACopy[indexOfa1]['index']] - 2*edgeMatrix[subsetACopy[j]['index']][subsetBCopy[indexOfb1]['index']]
+                subsetBCopy[j]['Dvalue'] = subsetBCopy[j]['Dvalue'] + 2*edgeMatrix[subsetBCopy[j]['index']
+                                                                                   ][subsetBCopy[indexOfb1]['index']] - 2*edgeMatrix[subsetBCopy[j]['index']][subsetACopy[indexOfa1]['index']]
 
+            # ------------------------------------------- the mistake is here, fix the popping problem
 
-            #remove the highest gain points from the set
+            # remove the highest gain points from the set
             Xstar.append(subsetACopy.pop(indexOfa1))
             Ystar.append(subsetBCopy.pop(indexOfb1))
 
+            # buffers the gain
+            GBuffer.append(
+                {"index": i, "G": G, "Xstar": Xstar.copy(), "Ystar": Ystar.copy()})
 
-            #buffers the gain 
-            GBuffer.append({"index" :i, "G": G, "Xstar": Xstar.copy(), "Ystar": Ystar.copy()})
+            # sorting based on Dvalue again
+            subsetACopy = sorted(
+                subsetACopy, key=lambda x: x['Dvalue'], reverse=True)
+            subsetBCopy = sorted(
+                subsetBCopy, key=lambda x: x['Dvalue'], reverse=True)
 
-            #sorting based on Dvalue again
-            subsetACopy= sorted(subsetACopy, key=lambda x:x['Dvalue'], reverse=True)
-            subsetBCopy= sorted(subsetBCopy, key=lambda x:x['Dvalue'], reverse=True)
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # remove highest gain exchanges from the subsetA and subsetB
+        GBuffer = sorted(GBuffer, key=lambda x: x['G'], reverse=True)
 
-        #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        #remove highest gain exchanges from the subsetA and subsetB
-        GBuffer= sorted(GBuffer, key=lambda x:x['G'], reverse=True)
-
-        if(GBuffer[0]['G']<=0.000000000001):
+        if(GBuffer[0]['G'] <= 0.000000000001):
             break
 
         for point in GBuffer[0]['Xstar']:
-            point['group'] = groupB
             subsetA.remove(point)
 
         for point in GBuffer[0]['Ystar']:
-            point['group'] = groupA
-            subsetB.remove(point)   
+            subsetB.remove(point)
 
-        #add the interchanged points to their new sets
+        # add the interchanged points to their new sets
         subsetA = subsetA + GBuffer[0]['Ystar']
         subsetB = subsetB + GBuffer[0]['Xstar']
         indicator = indicator + 1
 
-        for i in range(len(subsetA)): # update the group array
+        for i in range(len(subsetA)):  # update the group array
+            subsetA[i]['group'] = groupA
             groups[subsetA[i]['index']] = groupA
+            subsetB[i]['group'] = groupB
             groups[subsetB[i]['index']] = groupB
 
+    return subsetA, subsetB, indicator, groups
 
-    return subsetA ,subsetB, indicator, groups
 
-
-def divideIntoEvenClusters(x,y, numberOfClusters):
+def divideIntoEvenClusters(x, y, numberOfClusters):
     numbPoints = len(x)
-    changeFormatArray =[] 
-    for i in range(len(x)): #here is merely changing the format of the array
-        changeFormatArray.append([x[i],y[i]])
+    changeFormatArray = []
+    for i in range(len(x)):  # here is merely changing the format of the array
+        changeFormatArray.append([x[i], y[i]])
     X = np.array(changeFormatArray)
-    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints/numberOfClusters, size_max=numbPoints/numberOfClusters)
+    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints /
+                               numberOfClusters, size_max=numbPoints/numberOfClusters)
     kmeans.fit(X)
     return kmeans.labels_
 
 
-
 def getClustersPoints(numberOfClusters, array_database):
-    arrayOfSubsets = [] 
+    arrayOfSubsets = []
     for i in range(numberOfClusters):
         arrayOfSubsets.append({'group': i, 'subset': []})
         for point in array_database:
@@ -129,8 +139,7 @@ def getClustersPoints(numberOfClusters, array_database):
     return arrayOfSubsets
 
 
-
-def findOuterEdges(arrayOfSubsets, array_database,edgeMatrix):
+def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
     numbPoints = len(array_database)
     numberOfClusters = len(arrayOfSubsets)
     arrayOfEdgePoints = []
@@ -141,25 +150,16 @@ def findOuterEdges(arrayOfSubsets, array_database,edgeMatrix):
             point1 = groupArray[j]
             for k in range(numbPoints):
                 point2 = array_database[k]
-                differntGroups = not ( point1['group'] == point2['group'])
+                differntGroups = not (point1['group'] == point2['group'])
                 if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
                     externalEdgesCounter = externalEdgesCounter + 1
             if(externalEdgesCounter > 0):
-                arrayOfEdgePoints.append({'point': point1, 'outerEdges': externalEdgesCounter})
+                arrayOfEdgePoints.append(
+                    {'point': point1, 'outerEdges': externalEdgesCounter})
 
-    arrayOfEdgePoints = sorted(arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
-    print(len(arrayOfEdgePoints))
-    return arrayOfEdgePoints
-
-
-
-
-
-
-
-
-
-
+    arrayOfEdgePoints = sorted(
+        arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
+    return 0 if len(arrayOfEdgePoints) == 0 else arrayOfEdgePoints
 
     # def findOuterEdges(arrayOfSubsets, array_database,edgeMatrix):
     # numbPoints = len(array_database)
