@@ -148,15 +148,17 @@ def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
         for j in range(len(groupArray)):
             externalEdgesCounter = 0
             point1 = groupArray[j]
+            whatGropus = []
             for k in range(numbPoints):
                 point2 = array_database[k]
                 differntGroups = not (point1['group'] == point2['group'])
                 if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
+                    if not (point2['group'] in whatGropus):
+                        whatGropus.append(point2['group'])
                     externalEdgesCounter = externalEdgesCounter + 1
             if(externalEdgesCounter > 0):
                 arrayOfEdgePoints.append(
-                    {'point': point1, 'outerEdges': externalEdgesCounter})
-
+                    {'point': point1, 'outerEdges': externalEdgesCounter, 'outerGroups': whatGropus})
     arrayOfEdgePoints = sorted(
         arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
     return 0 if len(arrayOfEdgePoints) == 0 else arrayOfEdgePoints

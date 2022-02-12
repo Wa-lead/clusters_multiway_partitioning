@@ -9,7 +9,8 @@ from Algorithem import twoWayPartitioning, divideIntoEvenClusters, getClustersPo
 from collections import Counter
 
 
-fig, ax = plt.subplots(2, figsize=(8, 14))
+# fig, ax = plt.subplots(2, figsize=(8, 14))
+fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 1
 numberOfClusters = 4
 
@@ -24,7 +25,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 0.8
+lambda0 = 0.2
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -98,6 +99,32 @@ while i < numberOfClusters:
 arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
 arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
 
+for point in arrayOfEdgePoints:
+    internalCost = 0
+    for point2 in arrayOfSubsets[point['point']['group']]['subset']:
+        if edgeMatrix[point['point']['index']][point2['index']] == 1:
+            internalCost = internalCost + 1
+    externalCostBuffer = []
+    for group in point['outerGroups']:
+        if(len(arrayOfSubsets[group]['subset']) > 1.05*(numbPoints/numberOfClusters)):
+            break
+        externalCost = 0
+        for point2 in arrayOfSubsets[group]['subset']:
+            if edgeMatrix[point['point']['index']][point2['index']] == 1:
+                externalCost = externalCost +1 
+        externalCostBuffer.append({'externalCost': externalCost, 'group' :group})
+    externalCostBuffer = sorted(
+        externalCostBuffer, key=lambda x: x['externalCost'], reverse=True)
+    if externalCostBuffer[0]['externalCost'] - internalCost > 0:
+        oldGroup = point['point']['group']
+        newGroup =  externalCostBuffer[0]['group']
+        arrayOfSubsets[newGroup]['subset'].append(point['point'])
+        arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
+        point['point']['group'] = newGroup
+
+
+        
+        
 
 while arrayOfEdgePoints:
     for point in array_database:
@@ -120,26 +147,26 @@ for point in array_database:
         # Plotting the points on graph
         # iterates through the the array and connects every node within distance 1 kilometer
 
-# for index_first_point in range(numbPoints):
-#     for index_second_point in range(index_first_point, numbPoints):
-#         point1 = array_database[index_first_point]
-#         point2 = array_database[index_second_point]
-#         if edgeMatrix[index_first_point][index_second_point] != 0:
-#             pointX = [point1['x'], point2['x']]
-#             pointY = [point1['y'], point2['y']]
-#             ax[1].plot(pointX, pointY, 'grey')
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point, numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrix[index_first_point][index_second_point] != 0:
+            pointX = [point1['x'], point2['x']]
+            pointY = [point1['y'], point2['y']]
+            ax[1].plot(pointX, pointY, 'grey')
 
 # plots the points on the graph, if the point is healthy make it green, else red
 array_database = sorted(array_database, key=lambda x: x['index'])
 ax[1].scatter(x, y, c=groups, cmap='rainbow')
 
-# conver = []
-# for point in firewalls:
-#     conver.append([point['x'],point['y']])
+conver = []
+for point in firewalls:
+    conver.append([point['x'],point['y']])
 
-# X = np.array(conver)
-# if len(X) != 0:
-#     ax[1].scatter(X[:,0],X[:,1], c='green')
+X = np.array(conver)
+if len(X) != 0:
+    ax[1].scatter(X[:,0],X[:,1], c='green')
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
