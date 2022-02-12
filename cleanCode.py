@@ -97,16 +97,6 @@ while i < numberOfClusters:
 
 arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
 arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
-# print(arrayOfEdgePoints)
-# print(len(arrayOfEdgePoints))
-# for i in range (numbPoints):
-#     if edgeMatrix[arrayOfEdgePoints[0]['point']['index']][i] == 1:
-#         edgeMatrix[arrayOfEdgePoints[0]['point']['index']][i] = 2
-#         edgeMatrix[i][arrayOfEdgePoints[0]['point']['index']] = 2
-
-# arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
-# print(arrayOfEdgePoints)
-# print(len(arrayOfEdgePoints))
 
 
 while arrayOfEdgePoints:
@@ -129,6 +119,7 @@ for point in array_database:
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Plotting the points on graph
         # iterates through the the array and connects every node within distance 1 kilometer
+
 # for index_first_point in range(numbPoints):
 #     for index_second_point in range(index_first_point, numbPoints):
 #         point1 = array_database[index_first_point]
@@ -136,20 +127,19 @@ for point in array_database:
 #         if edgeMatrix[index_first_point][index_second_point] != 0:
 #             pointX = [point1['x'], point2['x']]
 #             pointY = [point1['y'], point2['y']]
-
 #             ax[1].plot(pointX, pointY, 'grey')
 
 # plots the points on the graph, if the point is healthy make it green, else red
 array_database = sorted(array_database, key=lambda x: x['index'])
 ax[1].scatter(x, y, c=groups, cmap='rainbow')
 
-conver = []
-for point in firewalls:
-    conver.append([point['x'],point['y']])
+# conver = []
+# for point in firewalls:
+#     conver.append([point['x'],point['y']])
 
-X = np.array(conver)
-if len(X) != 0:
-    ax[1].scatter(X[:,0],X[:,1], c='green')
+# X = np.array(conver)
+# if len(X) != 0:
+#     ax[1].scatter(X[:,0],X[:,1], c='green')
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
