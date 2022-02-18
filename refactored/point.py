@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 class Point():
     def __init__(self, group, index, x, y, infected, Dvalue):
         self.group = group
@@ -14,3 +16,17 @@ class Point():
 
     def __repr__(self):
             return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result

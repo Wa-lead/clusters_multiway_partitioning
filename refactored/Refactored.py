@@ -15,7 +15,7 @@ from point import Point
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 3
-numberOfClusters = 4
+numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -92,9 +92,10 @@ ax[0].plot([12, 2], [2, 2], color='black')
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Multi-way Partioning
-
+print(arrayOfSubsets[1].connectedGroup)
 i = 0
 while i < numberOfClusters:
+    print('is')
     startAgain = False
     for group in arrayOfSubsets[i].connectedGroup:
         arrayOfSubsets[i].outerPoints, arrayOfSubsets[group].outerPoints, indicator, groups = twoWayPartitioningEdgePoint(

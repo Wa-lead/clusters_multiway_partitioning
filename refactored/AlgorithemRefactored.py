@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 from k_means_constrained import KMeansConstrained
 from group import Group
 from point import Point
+from copy import copy, deepcopy
+import sys
+
+sys.setrecursionlimit(10000)
+
 
 
 def twoWayPartitioning(A, B, edgeMatrix, groups):
@@ -169,7 +174,7 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         subsetACopy = subsetA.copy()
         subsetBCopy = subsetB.copy()
 
-        for i in range(len(subsetACopy)):
+        for i in range(len(subsetACopy if len(subsetACopy)< len(subsetBCopy) else subsetBCopy)):
             gain = -10000
             indexOfa1 = 0
             indexOfb1 = 0
@@ -185,7 +190,6 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
                         indexOfb1 = k
 
             G += gain
-
             # Recalculating the Dvalue of each in the session
             for j in range(len(subsetACopy)):
                 subsetACopy[j].Dvalue = subsetACopy[j].Dvalue + 2*edgeMatrix[subsetACopy[j].index
@@ -217,11 +221,16 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         if(GBuffer[0]['G'] <= 0.000000000001):
             break
 
+
+#create a function that deletes outer points and delete it from points too
         for point in GBuffer[0]['Xstar']:
             subsetA.remove(point)
+            A.points.remove(point)
+            
 
         for point in GBuffer[0]['Ystar']:
             subsetB.remove(point)
+            B.points.remove(point)
 
         # add the interchanged points to their new sets
         subsetA = subsetA + GBuffer[0]['Ystar']
@@ -229,14 +238,17 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         indicator = indicator + 1
 
         for i in range(len(subsetA)):  # update the group array
-
             subsetA[i].group = groupA
             groups[subsetA[i].index] = groupA
+            A.points.append(point)
+
         
 
         for i in range(len(subsetB)):  # update the group array
             subsetB[i].group = groupB
             groups[subsetB[i].index] = groupB
+            B.points.append(point)
+
 
     return subsetA, subsetB, indicator, groups
 
