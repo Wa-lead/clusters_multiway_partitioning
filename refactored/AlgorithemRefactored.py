@@ -250,7 +250,7 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
             B.points.append(point)
 
 
-    return subsetA, subsetB, indicator, groups
+    return indicator
 
 
 def divideIntoEvenClusters(x, y, numberOfClusters):  # done
