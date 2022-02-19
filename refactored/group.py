@@ -37,3 +37,7 @@ class Group():
         for k, v in self.__dict__.items():
             setattr(result, k, deepcopy(v, memo))
         return result
+
+    def removeOuterPoint(self,point):
+        self.outerPoints.remove(point)
+        self.points.remove(point)

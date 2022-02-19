@@ -98,7 +98,7 @@ while i < numberOfClusters:
     print('is')
     startAgain = False
     for group in arrayOfSubsets[i].connectedGroup:
-        arrayOfSubsets[i].outerPoints, arrayOfSubsets[group].outerPoints, indicator, groups = twoWayPartitioningEdgePoint(
+        indicator = twoWayPartitioningEdgePoint(
             arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
         if indicator > 0:
             arrayOfSubsets[i].findConnectedGroup()
