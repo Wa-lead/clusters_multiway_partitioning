@@ -125,35 +125,35 @@ def twoWayPartitioning(A, B, edgeMatrix, groups):
 
 
 def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
-    subsetA = A.outerPoints
-    subsetB = B.outerPoints
+    subsetA = A
+    subsetB = B
     groupA = A.name
     groupB = B.name
     indicator = 0
     while True:
-        for index1 in range(len(subsetA)):
+        for index1 in range(len(subsetA.outerPoints)):
             ineternalCost = 0
             externalCost = 0
             # length of both subsets are the same
-            for index2 in range(len(subsetA)):
+            for index2 in range(len(subsetA.points)):
                 ineternalCost += edgeMatrix[subsetA[index1].index
                                             ][subsetA[index2].index]
 
-            for index2 in range(len(subsetB)):
+            for index2 in range(len(subsetB.points)):
                 externalCost += edgeMatrix[subsetA[index1].index
                                            ][subsetB[index2].index]
 
             subsetA[index1].Dvalue = externalCost - ineternalCost
 
-        for index1 in range(len(subsetB)):
+        for index1 in range(len(subsetB.outerPoints)):
             ineternalCost = 0
             externalCost = 0
             # length of both subsets are the same
-            for index2 in range(len(subsetB)):
+            for index2 in range(len(subsetB.points)):
                 ineternalCost += edgeMatrix[subsetB[index1].index
                                             ][subsetB[index2].index]
 
-            for index2 in range(len(subsetA)):
+            for index2 in range(len(subsetA.points)):
                 externalCost += edgeMatrix[subsetB[index1].index
                                            ][subsetA[index2].index]
 
@@ -171,8 +171,8 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         GBuffer = []
 
         # copies are used to maintain the state of the original sets
-        subsetACopy = subsetA.copy()
-        subsetBCopy = subsetB.copy()
+        subsetACopy = subsetA.outerPoints.copy()
+        subsetBCopy = subsetB.outerPoints.copy()
 
         for i in range(len(subsetACopy if len(subsetACopy)< len(subsetBCopy) else subsetBCopy)):
             gain = -10000
