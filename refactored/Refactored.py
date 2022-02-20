@@ -15,7 +15,7 @@ from point import Point
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 3
-numberOfClusters = 2
+numberOfClusters = 6
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -28,7 +28,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 0.5
+lambda0 = 1
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -95,7 +95,6 @@ ax[0].plot([12, 2], [2, 2], color='black')
 print(arrayOfSubsets[1].connectedGroup)
 i = 0
 while i < numberOfClusters:
-    print('is')
     startAgain = False
     for group in arrayOfSubsets[i].connectedGroup:
         indicator = twoWayPartitioningEdgePoint(
@@ -106,6 +105,7 @@ while i < numberOfClusters:
             startAgain = True
     i = 0 if startAgain else i + 1    
             
+
 
 
 

@@ -12,7 +12,6 @@ import sys
 sys.setrecursionlimit(10000)
 
 
-
 def twoWayPartitioning(A, B, edgeMatrix, groups):
     subsetA = A.outerPoints
     subsetB = B.outerPoints
@@ -131,36 +130,36 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
     groupB = B.name
     indicator = 0
     while True:
-        for index1 in range(len(subsetA.outerPoints)):
+        for point in subsetA.outerPoints:
             ineternalCost = 0
             externalCost = 0
             # length of both subsets are the same
-            for index2 in range(len(subsetA.points)):
-                ineternalCost += edgeMatrix[subsetA[index1].index
-                                            ][subsetA[index2].index]
+            for point2 in subsetA.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
 
-            for index2 in range(len(subsetB.points)):
-                externalCost += edgeMatrix[subsetA[index1].index
-                                           ][subsetB[index2].index]
+            for point2 in subsetB.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
 
-            subsetA[index1].Dvalue = externalCost - ineternalCost
+            point.Dvalue = externalCost - ineternalCost
 
-        for index1 in range(len(subsetB.outerPoints)):
+        for point in subsetB.outerPoints:
             ineternalCost = 0
             externalCost = 0
             # length of both subsets are the same
-            for index2 in range(len(subsetB.points)):
-                ineternalCost += edgeMatrix[subsetB[index1].index
-                                            ][subsetB[index2].index]
+            for point2 in subsetB.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
 
-            for index2 in range(len(subsetA.points)):
-                externalCost += edgeMatrix[subsetB[index1].index
-                                           ][subsetA[index2].index]
+            for point2 in subsetA.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
 
-            subsetB[index1].Dvalue = externalCost - ineternalCost
+            point.Dvalue = externalCost - ineternalCost
 
-        subsetA = sorted(subsetA, key=lambda x: x.Dvalue, reverse=True)
-        subsetB = sorted(subsetB, key=lambda x: x.Dvalue, reverse=True)
+        subsetA.outerPoints = sorted(subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
 
         # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -173,8 +172,8 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         # copies are used to maintain the state of the original sets
         subsetACopy = subsetA.outerPoints.copy()
         subsetBCopy = subsetB.outerPoints.copy()
-
-        for i in range(len(subsetACopy if len(subsetACopy)< len(subsetBCopy) else subsetBCopy)):
+        smallerSet = subsetACopy if len(subsetACopy) < len(subsetBCopy) else subsetBCopy
+        for i in range(len(smallerSet)):
             gain = -10000
             indexOfa1 = 0
             indexOfb1 = 0
@@ -222,33 +221,23 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
             break
 
 
-#create a function that deletes outer points and delete it from points too
+# create a function that deletes outer points and delete it from points too
         for point in GBuffer[0]['Xstar']:
-            subsetA.remove(point)
-            A.points.remove(point)
-            
+            subsetA.removeOuterPoint(point)
+            subsetB.appendOuterPoint(point)
 
         for point in GBuffer[0]['Ystar']:
-            subsetB.remove(point)
-            B.points.remove(point)
+            subsetB.removeOuterPoint(point)
+            subsetA.appendOuterPoint(point)
 
         # add the interchanged points to their new sets
-        subsetA = subsetA + GBuffer[0]['Ystar']
-        subsetB = subsetB + GBuffer[0]['Xstar']
         indicator = indicator + 1
 
-        for i in range(len(subsetA)):  # update the group array
-            subsetA[i].group = groupA
-            groups[subsetA[i].index] = groupA
-            A.points.append(point)
+        for point in subsetA.outerPoints:  # update the group array
+            groups[point.index] = groupA
 
-        
-
-        for i in range(len(subsetB)):  # update the group array
-            subsetB[i].group = groupB
-            groups[subsetB[i].index] = groupB
-            B.points.append(point)
-
+        for point in subsetB.outerPoints:  # update the group array
+            groups[point.index] = groupB
 
     return indicator
 

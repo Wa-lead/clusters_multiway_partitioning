@@ -41,3 +41,11 @@ class Group():
     def removeOuterPoint(self,point):
         self.outerPoints.remove(point)
         self.points.remove(point)
+
+    def appendOuterPoint(self,point):
+        self.outerPoints.append(point)
+        self.points.append(point)
+        point.group = self.name
+
+
+    
