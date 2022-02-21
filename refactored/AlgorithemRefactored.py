@@ -319,9 +319,59 @@ def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
             arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
             groups[point['point']['index']] = newGroup
             point['point']['group'] = newGroup
+            
+def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
+    numbPoints = len(groups)
+    numberOfClusters = len(arrayOfSubsets)
+    for point in arrayOfEdgePoints:
+        internalCost = 0
+        for point2 in arrayOfSubsets[point['point']['group']]['subset']:
+            if edgeMatrix[point['point']['index']][point2['index']] == 1:
+                internalCost = internalCost + 1
+        externalCostBuffer = []
+        for group in point['outerGroups']:
+            if(len(arrayOfSubsets[group]['subset']) > 1.05*(numbPoints/numberOfClusters)):
+                break
+
+            externalCost = 0
+            for point2 in arrayOfSubsets[group]['subset']:
+                if edgeMatrix[point['point']['index']][point2['index']] == 1:
+                    externalCost = externalCost + 1
+                    print(group)
+
+            externalCostBuffer.append(
+                {'externalCost': externalCost, 'group': group})
+        externalCostBuffer = sorted(
+            externalCostBuffer, key=lambda x: x['externalCost'], reverse=True)
+        if externalCostBuffer[0]['externalCost'] - internalCost > 0:
+            oldGroup = point['point']['group']
+            newGroup = externalCostBuffer[0]['group']
+            arrayOfSubsets[newGroup]['subset'].append(point['point'])
+            arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
+            groups[point['point']['index']] = newGroup
+            point['point']['group'] = newGroup
 
 
 def findFirewalls(arrayOfEdgePoints, array_database, edgeMatrix, arrayOfSubsets):
+    arrayOfEdgePoints = []
+    for group in arrayOfSubsets:
+        arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
+
+    potentialFirewalls = []
+
+    for point in arrayOfEdgePoints:
+        outerEdges = 0
+        for point2 in point.connectedWith:
+            if(point2.group != point.group) and point2.infected != 2:
+                outerEdges += 1
+        potentialFirewalls.append({point: point, 'outerEdges': outerEdges})
+
+
+
+
+
+
+
     while arrayOfEdgePoints:  # finds firewalls and mark them with 2
         for point in array_database:
             firstOuterPoint = arrayOfEdgePoints[0]['point']['index']

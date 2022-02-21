@@ -15,7 +15,7 @@ from point import Point
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 3
-numberOfClusters = 6
+numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -92,7 +92,6 @@ ax[0].plot([12, 2], [2, 2], color='black')
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Multi-way Partioning
-print(arrayOfSubsets[1].connectedGroup)
 i = 0
 while i < numberOfClusters:
     startAgain = False
@@ -110,12 +109,9 @@ while i < numberOfClusters:
 
 
 
-
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
-# arrayOfEdgePoints = findOuterEdges(arrayOfSubsets, array_database, edgeMatrix)
-# edgeMatrixCopy = deepcopy(edgeMatrix)
-# firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
+edgeMatrixCopy = deepcopy(edgeMatrix)
+firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
