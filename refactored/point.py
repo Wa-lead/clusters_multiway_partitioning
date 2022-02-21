@@ -3,6 +3,7 @@ from copy import copy, deepcopy
 class Point():
     def __init__(self, group, index, x, y, infected, Dvalue):
         self.group = group
+        group.points.append(self)
         self.index = index
         self.x = x
         self.y = y

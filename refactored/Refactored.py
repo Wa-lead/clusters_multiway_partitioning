@@ -39,13 +39,17 @@ groups = divideIntoEvenClusters(x, y, numberOfClusters)
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing The data point data base
 
+arrayOfSubsets = []
+
+for i in range(numberOfClusters):
+    arrayOfSubsets.append(Group(i))
+
 array_database = []
 
-for i in range(numbPoints):
-    array_database.append(Point(groups[i], i, x[i], y[i], 1 if random.randint(0, 9) > 8 else 0, 0)
+for i in range(numbPoints): #each point created adds it self to the group in belongs to
+    array_database.append(Point(arrayOfSubsets[groups[i]], i, x[i], y[i], 1 if random.randint(0, 9) > 8 else 0, 0)
                           )
 
-arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
 
 
 
@@ -90,17 +94,18 @@ ax[0].plot([12, 12], [12, 2], color='black')
 ax[0].plot([12, 2], [2, 2], color='black')
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+print(arrayOfSubsets)
 # Multi-way Partioning
 i = 0
 while i < numberOfClusters:
+    print('fd')
     startAgain = False
-    for group in arrayOfSubsets[i].connectedGroup:
+    for group in map(int,arrayOfSubsets[i].connectedGroup.keys()):
         indicator = twoWayPartitioningEdgePoint(
-            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
+            arrayOfSubsets[i], group, edgeMatrix, groups)
         if indicator > 0:
-            arrayOfSubsets[i].findConnectedGroup()
-            arrayOfSubsets[group].findConnectedGroup()
+            # arrayOfSubsets[i].findConnectedGroup()
+            # group.findConnectedGroup()
             startAgain = True
     i = 0 if startAgain else i + 1    
             
@@ -110,8 +115,8 @@ while i < numberOfClusters:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
+# edgeMatrixCopy = deepcopy(edgeMatrix)
+# firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 

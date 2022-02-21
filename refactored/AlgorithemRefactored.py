@@ -223,12 +223,16 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
 
 # create a function that deletes outer points and delete it from points too
         for point in GBuffer[0]['Xstar']:
-            subsetA.removeOuterPoint(point)
+            """
+            We add the point to the new group so we can update group attribute of the points, this is necessary because when wer remove it
+            from the other group we will use it in the checking part ot connectedGroups
+            """
             subsetB.appendOuterPoint(point)
+            subsetA.removeOuterPoint(point)
 
         for point in GBuffer[0]['Ystar']:
-            subsetB.removeOuterPoint(point)
             subsetA.appendOuterPoint(point)
+            subsetB.removeOuterPoint(point)
 
         # add the interchanged points to their new sets
         indicator = indicator + 1
@@ -251,17 +255,18 @@ def divideIntoEvenClusters(x, y, numberOfClusters):  # done
     kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints /
                                numberOfClusters, size_max=numbPoints/numberOfClusters)
     kmeans.fit(X)
+
     return kmeans.labels_
 
 
-def getClustersPoints(numberOfClusters, array_database):  # done
-    arrayOfSubsets = []
-    for i in range(numberOfClusters):
-        arrayOfSubsets.append(Group(i))
-        for point in array_database:
-            if(point.group == i):
-                arrayOfSubsets[i].add(point)
-    return arrayOfSubsets
+# def getClustersPoints(numberOfClusters, array_database):  # done
+#     arrayOfSubsets = []
+#     for i in range(numberOfClusters):
+#         arrayOfSubsets.append(Group(i))
+#         for point in array_database:
+#             if(point.group == i):
+#                 arrayOfSubsets[i].add(point)
+#     return arrayOfSubsets
 
 
 def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
