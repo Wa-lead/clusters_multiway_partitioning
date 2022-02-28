@@ -21,15 +21,19 @@ class Group():
     this way, it allows dynamic identification of connected groups without the need to run this algorithm after each iteration of the two-way partioning
     """
 
+    # def findConnectedGroup(self):
+    #     for point1 in self.points:
+    #         for point2 in point1.connectedWith:
+    #             if point2.group != self:
+    #                 if not (point1 in self.outerPoints):
+    #                     self.outerPoints.append(point1)
+    #                 self.connectedGroup[f'{point2.group.name}'] = [point1]
+
     def findConnectedGroup(self):
-        print("dd")
-        self.connectedGroup = []
         for point1 in self.points:
-            for point2 in point1.connectedWith:
-                if point2.group != self:
-                    if not (point1 in self.outerPoints):
-                        self.outerPoints.append(point1)
-                    self.connectedGroup[f'{point2.group.name}'] = [point1]
+            for group in point1.outerGroups:
+                self.connectedGroup[f'{group.name}'] =  self.connectedGroup[f'{group.name}'] + [point1] if f'{group.name}' in self.connectedGroup.keys() else [point1]
+                self.outerPoints.append(point1)
 
     def __copy__(self):
         cls = self.__class__
@@ -58,12 +62,21 @@ class Group():
             if len(removedPointGroup) == 0:
                 self.connectedGroup.pop(f'{point.group.name}')
 
+    # def appendOuterPoint(self,point):
+    #     self.outerPoints.append(point)
+    #     self.points.append(point)
+    #     point.group = self
+    #     for point2 in point.connectedWith:
+    #         if point2.group != point.group:
+    #             self.connectedGroup[f'{point2.group.name}'] = self.connectedGroup[f'{point2.group.name}'] + [point]
+
+    
     def appendOuterPoint(self,point):
         self.outerPoints.append(point)
         self.points.append(point)
         point.group = self
-        for point2 in point.connectedWith:
-            if point2.group != point.group:
-                self.connectedGroup[f'{point2.group}'].append(point)
+        point.updateOuterGroups()
+        for group in point.outerGroups:
+            self.connectedGroup[f'{group.name}'] = self.connectedGroup[f'{group.name}'] + [point] if f'{group.name}' in self.connectedGroup.keys() else [point]
 
     

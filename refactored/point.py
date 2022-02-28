@@ -10,6 +10,7 @@ class Point():
         self.infected = infected
         self.Dvalue = Dvalue
         self.connectedWith = []
+        self.outerGroups = [] ## change name later
     
     def connect(self, point): 
         self.connectedWith.append(point)
@@ -31,3 +32,9 @@ class Point():
         for k, v in self.__dict__.items():
             setattr(result, k, deepcopy(v, memo))
         return result
+    
+    def updateOuterGroups(self):
+        self.outerGroups = []
+        for point in self.connectedWith:
+            if point.group == self.group:
+                self.outerGroups.append(point.group)

@@ -158,8 +158,10 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
 
             point.Dvalue = externalCost - ineternalCost
 
-        subsetA.outerPoints = sorted(subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
-        subsetB.outerPoints = sorted(subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetA.outerPoints = sorted(
+            subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(
+            subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
 
         # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,7 +174,8 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         # copies are used to maintain the state of the original sets
         subsetACopy = subsetA.outerPoints.copy()
         subsetBCopy = subsetB.outerPoints.copy()
-        smallerSet = subsetACopy if len(subsetACopy) < len(subsetBCopy) else subsetBCopy
+        smallerSet = subsetACopy if len(subsetACopy) < len(
+            subsetBCopy) else subsetBCopy
         for i in range(len(smallerSet)):
             gain = -10000
             indexOfa1 = 0
@@ -269,29 +272,29 @@ def divideIntoEvenClusters(x, y, numberOfClusters):  # done
 #     return arrayOfSubsets
 
 
-def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
-    numbPoints = len(array_database)
-    numberOfClusters = len(arrayOfSubsets)
-    arrayOfEdgePoints = []
-    for i in range(numberOfClusters):
-        groupArray = arrayOfSubsets[i]['subset']
-        for j in range(len(groupArray)):
-            externalEdgesCounter = 0
-            point1 = groupArray[j]
-            whatGropus = []
-            for k in range(numbPoints):
-                point2 = array_database[k]
-                differntGroups = not (point1['group'] == point2['group'])
-                if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
-                    if not (point2['group'] in whatGropus):
-                        whatGropus.append(point2['group'])
-                    externalEdgesCounter = externalEdgesCounter + 1
-            if(externalEdgesCounter > 0):
-                arrayOfEdgePoints.append(
-                    {'point': point1, 'outerEdges': externalEdgesCounter, 'outerGroups': whatGropus})
-    arrayOfEdgePoints = sorted(
-        arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
-    return 0 if len(arrayOfEdgePoints) == 0 else arrayOfEdgePoints
+# def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
+#     numbPoints = len(array_database)
+#     numberOfClusters = len(arrayOfSubsets)
+#     arrayOfEdgePoints = []
+#     for i in range(numberOfClusters):
+#         groupArray = arrayOfSubsets[i]['subset']
+#         for j in range(len(groupArray)):
+#             externalEdgesCounter = 0
+#             point1 = groupArray[j]
+#             whatGropus = []
+#             for k in range(numbPoints):
+#                 point2 = array_database[k]
+#                 differntGroups = not (point1['group'] == point2['group'])
+#                 if edgeMatrix[point1['index']][point2['index']] == 1 and differntGroups:
+#                     if not (point2['group'] in whatGropus):
+#                         whatGropus.append(point2['group'])
+#                     externalEdgesCounter = externalEdgesCounter + 1
+#             if(externalEdgesCounter > 0):
+#                 arrayOfEdgePoints.append(
+#                     {'point': point1, 'outerEdges': externalEdgesCounter, 'outerGroups': whatGropus})
+#     arrayOfEdgePoints = sorted(
+#         arrayOfEdgePoints, key=lambda x: x['outerEdges'], reverse=True)
+#     return 0 if len(arrayOfEdgePoints) == 0 else arrayOfEdgePoints
 
 
 def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
@@ -324,7 +327,8 @@ def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
             arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
             groups[point['point']['index']] = newGroup
             point['point']['group'] = newGroup
-            
+
+
 def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
     numbPoints = len(groups)
     numberOfClusters = len(arrayOfSubsets)
@@ -357,41 +361,42 @@ def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
             point['point']['group'] = newGroup
 
 
-def findFirewalls(arrayOfEdgePoints, array_database, edgeMatrix, arrayOfSubsets):
+def findFirewalls(arrayOfSubsets):
     arrayOfEdgePoints = []
     for group in arrayOfSubsets:
         arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
-
     potentialFirewalls = []
-
     for point in arrayOfEdgePoints:
+        if(point.infected ==2 ):
+            continue
         outerEdges = 0
         for point2 in point.connectedWith:
             if(point2.group != point.group) and point2.infected != 2:
                 outerEdges += 1
-        potentialFirewalls.append({point: point, 'outerEdges': outerEdges})
+        point.outerEdges = outerEdges
+        potentialFirewalls.append(point)
+    potentialFirewalls = sorted(
+            potentialFirewalls, key=lambda x: x.outerEdges, reverse=True)
+    return potentialFirewalls[0] if len(potentialFirewalls)!=0 else None
 
 
 
 
-
-
-
-    while arrayOfEdgePoints:  # finds firewalls and mark them with 2
-        for point in array_database:
-            firstOuterPoint = arrayOfEdgePoints[0]['point']['index']
-            secondOuterPoint = point['index']
-            if edgeMatrix[firstOuterPoint][secondOuterPoint] == 1:
-                edgeMatrix[firstOuterPoint][secondOuterPoint] = 2
-                edgeMatrix[secondOuterPoint][firstOuterPoint] = 2
-        array_database[arrayOfEdgePoints.pop(
-            0)['point']['index']]['infected'] = 2
-        arrayOfEdgePoints = findOuterEdges(
-            arrayOfSubsets, array_database, edgeMatrix)
-
-    firewalls = []
-    for point in array_database:
-        if point['infected'] == 2:
-            firewalls.append(point)
-
-    return firewalls
+    
+def findFirewalls(arrayOfSubsets):
+    arrayOfEdgePoints = []
+    for group in arrayOfSubsets:
+        arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
+    potentialFirewalls = []
+    for point in arrayOfEdgePoints:
+        if(point.infected ==2 ):
+            continue
+        outerEdges = 0
+        for point2 in point.connectedWith:
+            if(point2.group != point.group) and point2.infected != 2:
+                outerEdges += 1
+        point.outerEdges = outerEdges
+        potentialFirewalls.append(point)
+    potentialFirewalls = sorted(
+            potentialFirewalls, key=lambda x: x.outerEdges, reverse=True)
+    return potentialFirewalls[0] if len(potentialFirewalls)!=0 else None

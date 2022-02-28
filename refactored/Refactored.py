@@ -14,21 +14,21 @@ from point import Point
 
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 3
+connectingDistance = 1
 numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
 # Simulation window parameters
 xMin = 0
-xMax = 14
+xMax = 15
 yMin = 0
-yMax = 14
+yMax = 15
 xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 1
+lambda0 = 0.6
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -68,6 +68,9 @@ for index_first_point in range(numbPoints):  # x
                         (point1.y-point2.y)**2)
         if distance <= connectingDistance and distance != 0:
             point1.connect(point2)
+            if(point1.group != point2.group):
+                point1.outerGroups.append(point2.group)
+                point2.outerGroups.append(point1.group)
             edgeMatrix[index_first_point][index_second_point] = 1
             edgeMatrix[index_second_point][index_first_point] = edgeMatrix[index_first_point][index_second_point]
 
@@ -94,15 +97,13 @@ ax[0].plot([12, 12], [12, 2], color='black')
 ax[0].plot([12, 2], [2, 2], color='black')
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-print(arrayOfSubsets)
 # Multi-way Partioning
 i = 0
 while i < numberOfClusters:
-    print('fd')
     startAgain = False
     for group in map(int,arrayOfSubsets[i].connectedGroup.keys()):
         indicator = twoWayPartitioningEdgePoint(
-            arrayOfSubsets[i], group, edgeMatrix, groups)
+            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
         if indicator > 0:
             # arrayOfSubsets[i].findConnectedGroup()
             # group.findConnectedGroup()
@@ -115,8 +116,15 @@ while i < numberOfClusters:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # edgeMatrixCopy = deepcopy(edgeMatrix)
-# firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
+# firewall = findFirewalls(arrayOfSubsets,edg)
+# while firewall is not None:
+#     for edge in edgeMatrixCopy[firewall.index]:
+#         if edge == 1:
+#             edge = 2
+#     firewall.infected = 2
+#     firewall = findFirewalls(arrayOfSubsets)
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
@@ -133,15 +141,15 @@ while i < numberOfClusters:
 # ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 # ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
-#         # Plot the first graph before partioning
+        # Plot the first graph before partioning
 # for index_first_point in range(numbPoints):
-#     for index_second_point in range(numbPoints):
+#     for index_second_point in range(index_first_point,numbPoints):
 #         point1 = array_database[index_first_point]
 #         point2 = array_database[index_second_point]
 #         edge = edgeMatrixCopy[index_first_point][index_second_point]
-#         if edge ==2:
-#             pointX = [point1['x'], point2['x']]
-#             pointY = [point1['y'], point2['y']]
+#         if edge > 0:
+#             pointX = [point1.x, point2.x]
+#             pointY = [point1.y, point2.y]
 #             ax[0].plot(pointX, pointY, 'white' if edge ==1 else 'green')
 
 
