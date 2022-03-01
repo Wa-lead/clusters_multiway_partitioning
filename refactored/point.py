@@ -15,9 +15,16 @@ class Point():
     def connect(self, point): 
         self.connectedWith.append(point)
         point.connectedWith.append(self)
+        if(self.group != point.group):
+            self.outerGroups.append(point.group)
+            point.outerGroups.append(self.group)
+
+
+    # def __repr__(self):
+    #         return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
 
     def __repr__(self):
-            return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
+            return f'{self.index}\n' 
 
     def __copy__(self):
         cls = self.__class__
@@ -36,5 +43,5 @@ class Point():
     def updateOuterGroups(self):
         self.outerGroups = []
         for point in self.connectedWith:
-            if point.group == self.group:
+            if point.group != self.group:
                 self.outerGroups.append(point.group)

@@ -14,7 +14,7 @@ from point import Point
 
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 1
+connectingDistance = 0.5
 numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 0.6
+lambda0 = 1
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -61,24 +61,25 @@ edgeMatrix = [[0 for i in range(len(array_database))]
               for j in range(len(array_database))]
 
 for index_first_point in range(numbPoints):  # x
-    for index_second_point in range(index_first_point, numbPoints):
+    for index_second_point in range(index_first_point+1, numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
+        if(point2 == point1):
+            continue
         distance = sqrt((point1.x-point2.x)**2 +
                         (point1.y-point2.y)**2)
-        if distance <= connectingDistance and distance != 0:
+        if distance <= connectingDistance:
             point1.connect(point2)
-            if(point1.group != point2.group):
-                point1.outerGroups.append(point2.group)
-                point2.outerGroups.append(point1.group)
             edgeMatrix[index_first_point][index_second_point] = 1
             edgeMatrix[index_second_point][index_first_point] = edgeMatrix[index_first_point][index_second_point]
 
 # here we're finding the outer connected grouops for each and the also the outer points
+
 for group in arrayOfSubsets:
     group.findConnectedGroup()
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Plot the first graph before partioning
 # for index_first_point in range(numbPoints):
 #     for index_second_point in range(numbPoints):
@@ -105,8 +106,6 @@ while i < numberOfClusters:
         indicator = twoWayPartitioningEdgePoint(
             arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
         if indicator > 0:
-            # arrayOfSubsets[i].findConnectedGroup()
-            # group.findConnectedGroup()
             startAgain = True
     i = 0 if startAgain else i + 1    
             

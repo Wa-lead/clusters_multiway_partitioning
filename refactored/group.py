@@ -12,7 +12,7 @@ class Group():
         self.points.append(point)
 
     def __repr__(self):
-            return f'{self.name}: {self.points}'
+        return f'{self.name}: {self.points}'
 
     """
     this function itertates through all the points in this group and detects points that links it with other groups and stores it in (outerPoints)
@@ -30,10 +30,13 @@ class Group():
     #                 self.connectedGroup[f'{point2.group.name}'] = [point1]
 
     def findConnectedGroup(self):
+        self.outerPoints = []
         for point1 in self.points:
             for group in point1.outerGroups:
-                self.connectedGroup[f'{group.name}'] =  self.connectedGroup[f'{group.name}'] + [point1] if f'{group.name}' in self.connectedGroup.keys() else [point1]
-                self.outerPoints.append(point1)
+                self.connectedGroup[f'{group.name}'] = self.connectedGroup[f'{group.name}'] + [
+                    point1] if f'{group.name}' in self.connectedGroup.keys() else [point1]
+            self.outerPoints.append(point1)
+        
 
     def __copy__(self):
         cls = self.__class__
@@ -49,12 +52,14 @@ class Group():
             setattr(result, k, deepcopy(v, memo))
         return result
 
-    def removeOuterPoint(self,point):
+    def removeOuterPoint(self, point):
         self.outerPoints.remove(point)
         self.points.remove(point)
 
         """
         This part checks if
+        part removes the point from the list that holds the references of the points that connect the group with other groups
+        if the list is empty then this means the other group is no longer connected and hence should be removed from connectedGroups
         """
         if point.group.name in self.connectedGroup.keys():
             removedPointGroup = self.connectedGroup[f'{point.group.name}']
@@ -70,13 +75,11 @@ class Group():
     #         if point2.group != point.group:
     #             self.connectedGroup[f'{point2.group.name}'] = self.connectedGroup[f'{point2.group.name}'] + [point]
 
-    
-    def appendOuterPoint(self,point):
+    def appendOuterPoint(self, point):
         self.outerPoints.append(point)
         self.points.append(point)
         point.group = self
         point.updateOuterGroups()
         for group in point.outerGroups:
-            self.connectedGroup[f'{group.name}'] = self.connectedGroup[f'{group.name}'] + [point] if f'{group.name}' in self.connectedGroup.keys() else [point]
-
-    
+            self.connectedGroup[f'{group.name}'] = self.connectedGroup[f'{group.name}'] + [
+                point] if f'{group.name}' in self.connectedGroup.keys() else [point]
