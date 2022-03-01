@@ -14,8 +14,8 @@ from point import Point
 
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 3
-numberOfClusters = 2
+connectingDistance = 1
+numberOfClusters = 7
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -28,7 +28,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 1
+lambda0 = 2
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -110,8 +110,8 @@ while i < numberOfClusters:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
+# edgeMatrixCopy = deepcopy(edgeMatrix)
+# firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 

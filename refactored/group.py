@@ -46,6 +46,3 @@ class Group():
         self.outerPoints.append(point)
         self.points.append(point)
         point.group = self.name
-
-
-    
