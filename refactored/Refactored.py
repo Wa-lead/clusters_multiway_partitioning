@@ -14,7 +14,7 @@ from point import Point
 
 fig, ax = plt.subplots(2, figsize=(8, 14))
 # fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 0.5
+connectingDistance = 1
 numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -103,9 +103,11 @@ i = 0
 while i < numberOfClusters:
     startAgain = False
     for group in map(int,arrayOfSubsets[i].connectedGroup.keys()):
-        indicator = twoWayPartitioningEdgePoint(
+        indicator, points= twoWayPartitioningEdgePoint(
             arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
         if indicator > 0:
+            for point in points:
+                point.updateOuterGroups()
             startAgain = True
     i = 0 if startAgain else i + 1    
             

@@ -124,6 +124,7 @@ def twoWayPartitioning(A, B, edgeMatrix, groups):
 
 
 def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
+    interchangedPoints = []
     subsetA = A
     subsetB = B
     groupA = A.name
@@ -232,21 +233,24 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
             """
             subsetB.appendOuterPoint(point)
             subsetA.removeOuterPoint(point)
+            groups[point.index] = groupB
+            interchangedPoints.append(point)
+
 
         for point in GBuffer[0]['Ystar']:
             subsetA.appendOuterPoint(point)
             subsetB.removeOuterPoint(point)
+            groups[point.index] = groupA
+            interchangedPoints.append(point)
+
+
 
         # add the interchanged points to their new sets
         indicator = indicator + 1
 
-        for point in subsetA.outerPoints:  # update the group array
-            groups[point.index] = groupA
 
-        for point in subsetB.outerPoints:  # update the group array
-            groups[point.index] = groupB
 
-    return indicator
+    return indicator, interchangedPoints
 
 
 def divideIntoEvenClusters(x, y, numberOfClusters):  # done
