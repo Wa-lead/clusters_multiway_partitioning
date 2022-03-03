@@ -7,6 +7,8 @@ from k_means_constrained import KMeansConstrained
 from group import Group
 from point import Point
 from copy import copy, deepcopy
+from collections import Counter
+
 import sys
 
 sys.setrecursionlimit(10000)
@@ -352,41 +354,39 @@ def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
             point['point']['group'] = newGroup
 
 
-def findFirewalls(arrayOfEdgePoints, array_database, edgeMatrix, arrayOfSubsets):
+def findPotentialFireWalls(arrayOfSubsets):
     arrayOfEdgePoints = []
     for group in arrayOfSubsets:
-        arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
+        if(group.outerPoints):
+            arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
 
     potentialFirewalls = []
+    if(arrayOfEdgePoints):
+        for point in arrayOfEdgePoints:
+            outerEdges = [p for p in point.connectedWith if p.group != point.group]
+            print(outerEdges)
+            potentialFirewalls.append({'point': point, 'outerEdges': outerEdges})
 
-    for point in arrayOfEdgePoints:
-        outerEdges = 0
-        for point2 in point.connectedWith:
-            if(point2.group != point.group) and point2.infected != 2:
-                outerEdges += 1
-        potentialFirewalls.append({point: point, 'outerEdges': outerEdges})
-
-
+    return potentialFirewalls
 
 
 
+def findFirewalls(arrayOfSubsets):
+    actualFirewalls = []
+    potentialFirewalls = sorted(findPotentialFireWalls(arrayOfSubsets), key=lambda x: len(x['outerEdges']), reverse=True)
+    
+    for potential in potentialFirewalls:
+        for potential2 in potentialFirewalls:
+            if potential['point'] in potential2['outerEdges']:
+                potential2['outerEdges'].remove(potential['point'])
+
+        if(potential['outerEdges']):
+            actualFirewalls.append(potential['point'])
+        potentialFirewalls = sorted(potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
+
+    
+    return actualFirewalls
+
+    
 
 
-    while arrayOfEdgePoints:  # finds firewalls and mark them with 2
-        for point in array_database:
-            firstOuterPoint = arrayOfEdgePoints[0]['point']['index']
-            secondOuterPoint = point['index']
-            if edgeMatrix[firstOuterPoint][secondOuterPoint] == 1:
-                edgeMatrix[firstOuterPoint][secondOuterPoint] = 2
-                edgeMatrix[secondOuterPoint][firstOuterPoint] = 2
-        array_database[arrayOfEdgePoints.pop(
-            0)['point']['index']]['infected'] = 2
-        arrayOfEdgePoints = findOuterEdges(
-            arrayOfSubsets, array_database, edgeMatrix)
-
-    firewalls = []
-    for point in array_database:
-        if point['infected'] == 2:
-            firewalls.append(point)
-
-    return firewalls

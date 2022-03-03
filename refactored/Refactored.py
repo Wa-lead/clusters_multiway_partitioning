@@ -12,23 +12,23 @@ from copy import copy, deepcopy
 from point import Point
 
 
-fig, ax = plt.subplots(2, figsize=(8, 14))
-# fig, ax = plt.subplots(2, figsize=(4,7))
+# fig, ax = plt.subplots(2, figsize=(8, 14))
+fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 1
-numberOfClusters = 7
+numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
 # Simulation window parameters
 xMin = 0
-xMax = 14
+xMax = 15
 yMin = 0
-yMax = 14
+yMax = 15
 xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 2
+lambda0 = 1
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -57,7 +57,7 @@ edgeMatrix = [[0 for i in range(len(array_database))]
               for j in range(len(array_database))]
 
 for index_first_point in range(numbPoints):  # x
-    for index_second_point in range(index_first_point, numbPoints):
+    for index_second_point in range(index_first_point+1, numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
         distance = sqrt((point1.x-point2.x)**2 +
@@ -73,22 +73,25 @@ for group in arrayOfSubsets:
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Plot the first graph before partioning
-# for index_first_point in range(numbPoints):
-#     for index_second_point in range(numbPoints):
-#         point1 = array_database[index_first_point]
-#         point2 = array_database[index_second_point]
-#         if edgeMatrix[index_first_point][index_second_point] != 0:
-#             pointX = [point1['x'], point2['x']]
-#             pointY = [point1['y'], point2['y']]
-#             ax[0].plot(pointX, pointY, 'grey')
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point+1,numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrix[index_first_point][index_second_point] != 0:
+            pointX = [point1.x, point2.x]
+            pointY = [point1.y, point2.y]
+            ax[0].plot(pointX, pointY, 'grey')
 
 ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
-ax[0].plot([2, 2], [2, 12], color='black')
-ax[0].plot([2, 12], [12, 12], color='black')
-ax[0].plot([12, 12], [12, 2], color='black')
-ax[0].plot([12, 2], [2, 2], color='black')
-
+ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4],
+           [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
+ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25],
+           [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
+ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25],
+           [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
+ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
+           [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Multi-way Partioning
@@ -111,23 +114,34 @@ while i < numberOfClusters:
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # edgeMatrixCopy = deepcopy(edgeMatrix)
-# firewalls1 = findFirewalls(deepcopy(arrayOfEdgePoints), deepcopy(array_database), edgeMatrixCopy, arrayOfSubsets)
+firewalls = findFirewalls(arrayOfSubsets)
+
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
-# conver = []
-# for point in firewalls1:
-#     conver.append([point['x'],point['y']])
+conver = []
+for point in firewalls:
+    conver.append([point.x,point.y])
 
-# X = np.array(conver)
-# if len(X) != 0:
-#     ax[0].scatter(X[:,0],X[:,1], c='green')
+X = np.array(conver)
+if len(X) != 0:
+    ax[0].scatter(X[:,0],X[:,1], c='green')
 
 # ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
 # ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
 # ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 # ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
+
+
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point+1,numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrix[index_first_point][index_second_point] != 0:
+            pointX = [point1.x, point2.x]
+            pointY = [point1.y, point2.y]
+            ax[1].plot(pointX, pointY, 'grey')
 #         # Plot the first graph before partioning
 # for index_first_point in range(numbPoints):
 #     for index_second_point in range(numbPoints):
