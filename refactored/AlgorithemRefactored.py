@@ -7,7 +7,6 @@ from k_means_constrained import KMeansConstrained
 from group import Group
 from point import Point
 from copy import copy, deepcopy
-from collections import Counter
 
 import sys
 
@@ -291,67 +290,95 @@ def findOuterEdges(arrayOfSubsets, array_database, edgeMatrix):
     return 0 if len(arrayOfEdgePoints) == 0 else arrayOfEdgePoints
 
 
-def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
-    numbPoints = len(groups)
-    numberOfClusters = len(arrayOfSubsets)
-    for point in arrayOfEdgePoints:
-        internalCost = 0
-        for point2 in arrayOfSubsets[point['point']['group']]['subset']:
-            if edgeMatrix[point['point']['index']][point2['index']] == 1:
-                internalCost = internalCost + 1
-        externalCostBuffer = []
-        for group in point['outerGroups']:
-            if(len(arrayOfSubsets[group]['subset']) > 1.05*(numbPoints/numberOfClusters)):
-                break
+# def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
+#     numbPoints = len(groups)
+#     numberOfClusters = len(arrayOfSubsets)
+#     for point in arrayOfEdgePoints:
+#         internalCost = 0
+#         for point2 in arrayOfSubsets[point['point']['group']]['subset']:
+#             if edgeMatrix[point['point']['index']][point2['index']] == 1:
+#                 internalCost = internalCost + 1
+#         externalCostBuffer = []
+#         for group in point['outerGroups']:
+#             if(len(arrayOfSubsets[group]['subset']) > 1.05*(numbPoints/numberOfClusters)):
+#                 break
 
-            externalCost = 0
-            for point2 in arrayOfSubsets[group]['subset']:
-                if edgeMatrix[point['point']['index']][point2['index']] == 1:
-                    externalCost = externalCost + 1
-                    print(group)
+#             externalCost = 0
+#             for point2 in arrayOfSubsets[group]['subset']:
+#                 if edgeMatrix[point['point']['index']][point2['index']] == 1:
+#                     externalCost = externalCost + 1
+#                     print(group)
 
-            externalCostBuffer.append(
-                {'externalCost': externalCost, 'group': group})
-        externalCostBuffer = sorted(
-            externalCostBuffer, key=lambda x: x['externalCost'], reverse=True)
-        if externalCostBuffer[0]['externalCost'] - internalCost > 0:
-            oldGroup = point['point']['group']
-            newGroup = externalCostBuffer[0]['group']
-            arrayOfSubsets[newGroup]['subset'].append(point['point'])
-            arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
-            groups[point['point']['index']] = newGroup
-            point['point']['group'] = newGroup
+#             externalCostBuffer.append(
+#                 {'externalCost': externalCost, 'group': group})
+#         externalCostBuffer = sorted(
+#             externalCostBuffer, key=lambda x: x['externalCost'], reverse=True)
+#         if externalCostBuffer[0]['externalCost'] - internalCost > 0:
+#             oldGroup = point['point']['group']
+#             newGroup = externalCostBuffer[0]['group']
+#             arrayOfSubsets[newGroup]['subset'].append(point['point'])
+#             arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
+#             groups[point['point']['index']] = newGroup
+#             point['point']['group'] = newGroup
             
-def onePointInterchange(groups, arrayOfEdgePoints, arrayOfSubsets, edgeMatrix):
-    numbPoints = len(groups)
-    numberOfClusters = len(arrayOfSubsets)
-    for point in arrayOfEdgePoints:
-        internalCost = 0
-        for point2 in arrayOfSubsets[point['point']['group']]['subset']:
-            if edgeMatrix[point['point']['index']][point2['index']] == 1:
-                internalCost = internalCost + 1
-        externalCostBuffer = []
-        for group in point['outerGroups']:
-            if(len(arrayOfSubsets[group]['subset']) > 1.05*(numbPoints/numberOfClusters)):
-                break
-
+def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
+    legalSize = defaultSize + defaultSize * legalIncrese
+    subsetA = A
+    subsetB = B
+    groupA = A.name
+    groupB = B.name
+    indicator = 0
+    while subsetA.outerPoints and subsetB.outerPoints:
+        for point in subsetA.outerPoints:
+            ineternalCost = 0
             externalCost = 0
-            for point2 in arrayOfSubsets[group]['subset']:
-                if edgeMatrix[point['point']['index']][point2['index']] == 1:
-                    externalCost = externalCost + 1
-                    print(group)
+            # length of both subsets are the same
+            for point2 in subsetA.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
 
-            externalCostBuffer.append(
-                {'externalCost': externalCost, 'group': group})
-        externalCostBuffer = sorted(
-            externalCostBuffer, key=lambda x: x['externalCost'], reverse=True)
-        if externalCostBuffer[0]['externalCost'] - internalCost > 0:
-            oldGroup = point['point']['group']
-            newGroup = externalCostBuffer[0]['group']
-            arrayOfSubsets[newGroup]['subset'].append(point['point'])
-            arrayOfSubsets[oldGroup]['subset'].remove(point['point'])
-            groups[point['point']['index']] = newGroup
-            point['point']['group'] = newGroup
+            for point2 in subsetB.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
+
+            point.Dvalue = externalCost - ineternalCost
+
+        for point in subsetB.outerPoints:
+            ineternalCost = 0
+            externalCost = 0
+            # length of both subsets are the same
+            for point2 in subsetB.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
+
+            for point2 in subsetA.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
+
+            point.Dvalue = externalCost - ineternalCost
+
+        subsetA.outerPoints = sorted(subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+
+        subsetACandidate = subsetA.outerPoints[0]
+        subsetBCandidate = subsetB.outerPoints[0]
+
+        if len(subsetA.points) <= legalSize and len(subsetB.points) <= legalSize and (subsetACandidate.Dvalue>0 or subsetBCandidate.Dvalue>0):
+            indicator += 1
+            if(subsetACandidate.Dvalue>subsetBCandidate.Dvalue):
+                subsetB.appendOuterPoint(subsetACandidate)
+                subsetA.removeOuterPoint(subsetACandidate)
+                groups[subsetACandidate.index] = groupB
+            else:
+                subsetA.appendOuterPoint(subsetBCandidate)
+                subsetB.removeOuterPoint(subsetBCandidate)
+                groups[subsetBCandidate.index] = groupA
+
+        else:
+            break
+
+    return indicator
+    
 
 
 def findPotentialFireWalls(arrayOfSubsets):
@@ -364,14 +391,13 @@ def findPotentialFireWalls(arrayOfSubsets):
     if arrayOfEdgePoints:
         for point in arrayOfEdgePoints:
             outerEdges = [p for p in point.connectedWith if p.group != point.group]
-            print(len(outerEdges))
             potentialFirewalls.append({'point': point, 'outerEdges': outerEdges})
 
     return potentialFirewalls
 
 
 
-def findFirewalls(arrayOfSubsets):
+def findFirewalls(arrayOfSubsets,edgeMatrix):
     actualFirewalls = []
     potentialFirewalls = sorted(findPotentialFireWalls(arrayOfSubsets), key=lambda x: len(x['outerEdges']), reverse=True)
     # for p in potentialFirewalls:
@@ -386,6 +412,7 @@ def findFirewalls(arrayOfSubsets):
 
             if(potential['outerEdges']):
                 actualFirewalls.append(potential['point'])
+                edgeMatrix[potential['point'].index] = [2 if item == 1 else item for item in edgeMatrix[potential['point'].index]]
             potentialFirewalls = sorted(potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
     
