@@ -361,10 +361,10 @@ def findPotentialFireWalls(arrayOfSubsets):
             arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
 
     potentialFirewalls = []
-    if(arrayOfEdgePoints):
+    if arrayOfEdgePoints:
         for point in arrayOfEdgePoints:
             outerEdges = [p for p in point.connectedWith if p.group != point.group]
-            print(outerEdges)
+            print(len(outerEdges))
             potentialFirewalls.append({'point': point, 'outerEdges': outerEdges})
 
     return potentialFirewalls
@@ -374,15 +374,19 @@ def findPotentialFireWalls(arrayOfSubsets):
 def findFirewalls(arrayOfSubsets):
     actualFirewalls = []
     potentialFirewalls = sorted(findPotentialFireWalls(arrayOfSubsets), key=lambda x: len(x['outerEdges']), reverse=True)
-    
-    for potential in potentialFirewalls:
-        for potential2 in potentialFirewalls:
-            if potential['point'] in potential2['outerEdges']:
-                potential2['outerEdges'].remove(potential['point'])
+    # for p in potentialFirewalls:
+    #     print(len(p['outerEdges']))
 
-        if(potential['outerEdges']):
-            actualFirewalls.append(potential['point'])
-        potentialFirewalls = sorted(potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
+    
+    if potentialFirewalls:
+        for potential in potentialFirewalls:
+            for potential2 in potentialFirewalls:
+                if potential['point'] in potential2['outerEdges']:
+                    potential2['outerEdges'].remove(potential['point'])
+
+            if(potential['outerEdges']):
+                actualFirewalls.append(potential['point'])
+            potentialFirewalls = sorted(potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
     
     return actualFirewalls

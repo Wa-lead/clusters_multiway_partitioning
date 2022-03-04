@@ -12,9 +12,9 @@ from copy import copy, deepcopy
 from point import Point
 
 
-# fig, ax = plt.subplots(2, figsize=(8, 14))
-fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 1
+fig, ax = plt.subplots(2, figsize=(8, 14))
+# fig, ax = plt.subplots(2, figsize=(4,7))
+connectingDistance = 0.3
 numberOfClusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 1
+lambda0 =2
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())*numberOfClusters
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -57,7 +57,7 @@ edgeMatrix = [[0 for i in range(len(array_database))]
               for j in range(len(array_database))]
 
 for index_first_point in range(numbPoints):  # x
-    for index_second_point in range(index_first_point+1, numbPoints):
+    for index_second_point in range(index_first_point, numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
         distance = sqrt((point1.x-point2.x)**2 +
@@ -71,10 +71,11 @@ for index_first_point in range(numbPoints):  # x
 for group in arrayOfSubsets:
     group.findConnectedGroup()
 
+print(len(arrayOfSubsets[0].outerPoints))
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # Plot the first graph before partioning
 for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point+1,numbPoints):
+    for index_second_point in range(index_first_point,numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
         if edgeMatrix[index_first_point][index_second_point] != 0:
@@ -93,6 +94,16 @@ ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25],
 ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
            [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+firewalls = findFirewalls(arrayOfSubsets)
+
+
+conver = []
+for point in firewalls:
+    conver.append([point.x,point.y])
+
+X = np.array(conver)
+if len(X) != 0:
+    ax[0].scatter(X[:,0],X[:,1], c='green')
 
 # Multi-way Partioning
 i = 0
@@ -114,18 +125,11 @@ while i < numberOfClusters:
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls = findFirewalls(arrayOfSubsets)
 
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
-conver = []
-for point in firewalls:
-    conver.append([point.x,point.y])
 
-X = np.array(conver)
-if len(X) != 0:
-    ax[0].scatter(X[:,0],X[:,1], c='green')
 
 # ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
 # ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
@@ -135,7 +139,7 @@ if len(X) != 0:
 
 
 for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point+1,numbPoints):
+    for index_second_point in range(index_first_point,numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
         if edgeMatrix[index_first_point][index_second_point] != 0:
@@ -179,14 +183,16 @@ for index_first_point in range(numbPoints):
 # # array_database = sorted(array_database, key=lambda x: x['index'])
 ax[1].scatter(x, y, c=groups, cmap='rainbow')
 
-# conver = []
-# for point in firewalls:
-#     conver.append([point['x'],point['y']])
+firewalls = findFirewalls(arrayOfSubsets)
 
-# X = np.array(conver)
-# if len(X) != 0:
-#     ax[1].scatter(X[:,0],X[:,1], c='green')
 
+conver = []
+for point in firewalls:
+    conver.append([point.x,point.y])
+
+X = np.array(conver)
+if len(X) != 0:
+    ax[1].scatter(X[:,0],X[:,1], c='green')
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Drawing the boundries of the range

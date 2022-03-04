@@ -15,7 +15,8 @@ class Point():
         point.connectedWith.append(self)
 
     def __repr__(self):
-            return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
+            # return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
+            return f'index: {self.index}' + '\n'
 
     def __copy__(self):
         cls = self.__class__
