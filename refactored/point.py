@@ -16,7 +16,7 @@ class Point():
 
     def __repr__(self):
             # return f'group: {self.group}, index: {self.index},x: {self.x},y: {self.y},infected? {self.infected}, Dvalue: {self.Dvalue}'
-            return f'index: {self.index}' + '\n'
+            return f'index: {self.index}'
 
     def __copy__(self):
         cls = self.__class__

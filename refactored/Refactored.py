@@ -12,23 +12,23 @@ from copy import copy, deepcopy
 from point import Point
 
 
-fig, ax = plt.subplots(3, figsize=(3, 7))
+fig, ax = plt.subplots(2, figsize=(7,12))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connectingDistance = 1
-numberOfClusters = 2
+numberOfClusters = 5
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
 # Simulation window parameters
 xMin = 0
-xMax = 15
+xMax = 20
 yMin = 0
-yMax = 15
+yMax = 20
 xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 =1
+lambda0 = 2
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -76,30 +76,30 @@ for group in arrayOfSubsets:
         # Plot the first graph before partioning
 
 
-edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
-print(len(firewalls))
+# edgeMatrixCopy = deepcopy(edgeMatrix)
+# firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
+# print(len(firewalls))
 
 
-ax[0].scatter(x, y, c=groups, cmap='rainbow')
+# ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
 
-for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
-            pointX = [point1.x, point2.x]
-            pointY = [point1.y, point2.y]
-            ax[0].plot(pointX, pointY, 'green')
+# for index_first_point in range(numbPoints):
+#     for index_second_point in range(index_first_point,numbPoints):
+#         point1 = array_database[index_first_point]
+#         point2 = array_database[index_second_point]
+#         if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
+#             pointX = [point1.x, point2.x]
+#             pointY = [point1.y, point2.y]
+#             ax[0].plot(pointX, pointY, 'green')
 
-conver = []
-for point in firewalls:
-    conver.append([point.x,point.y])
+# conver = []
+# for point in firewalls:
+#     conver.append([point.x,point.y])
 
-X = np.array(conver)
-if len(X) != 0:
-    ax[0].scatter(X[:,0],X[:,1], c='green')
+# X = np.array(conver)
+# if len(X) != 0:
+#     ax[0].scatter(X[:,0],X[:,1], c='green')
 
 # ax[0].scatter(x, y, c=groups, cmap='rainbow')
 
@@ -135,8 +135,76 @@ for group in arrayOfSubsets:
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+ax[0].scatter(x, y, c=groups, cmap='rainbow')
+
+
+
+ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
+ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
+ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
+ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
+
+edgeMatrixCopy = deepcopy(edgeMatrix)
+firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
+print(len(firewalls))
+
+
+
+## to plot edges
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point,numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrixCopy[index_first_point][index_second_point] !=2 and edgeMatrixCopy[index_second_point][index_first_point] !=0:
+            pointX = [point1.x, point2.x]
+            pointY = [point1.y, point2.y]
+            ax[0].plot(pointX, pointY, 'black')
+
+## to highlight edges
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point,numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
+            pointX = [point1.x, point2.x]
+            pointY = [point1.y, point2.y]
+            ax[0].plot(pointX, pointY, 'green')
+
+
+
+
+
+
+conver = []
+for point in firewalls:
+    conver.append([point.x,point.y])
+
+X = np.array(conver)
+if len(X) != 0:
+    ax[0].scatter(X[:,0],X[:,1], c='green')
+
+
+
+
+
+
+## one point interchange
+i=0
+while i < numberOfClusters:
+    startAgain = False
+    for group in arrayOfSubsets[i].connectedGroup:
+        indicator = onePointInterchangeEnhanced(
+            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups, numbPoints/numberOfClusters, 0.1)
+        if indicator > 0:
+            arrayOfSubsets[i].findConnectedGroup()
+            arrayOfSubsets[group].findConnectedGroup()
+            startAgain = True
+    i = 0 if startAgain else i + 1    
+            
 ax[1].scatter(x, y, c=groups, cmap='rainbow')
 
+firewalls = findFirewalls(arrayOfSubsets, edgeMatrix)
+print(len(firewalls))
 
 
 ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
@@ -144,16 +212,26 @@ ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.2
 ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
-edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
-print(len(firewalls))
 
+
+
+
+
+## to plot edges
+for index_first_point in range(numbPoints):
+    for index_second_point in range(index_first_point,numbPoints):
+        point1 = array_database[index_first_point]
+        point2 = array_database[index_second_point]
+        if edgeMatrix[index_second_point][index_first_point] !=0 and edgeMatrix[index_first_point][index_second_point] !=2 :
+            pointX = [point1.x, point2.x]
+            pointY = [point1.y, point2.y]
+            ax[1].plot(pointX, pointY, 'black')
 
 for index_first_point in range(numbPoints):
     for index_second_point in range(index_first_point,numbPoints):
         point1 = array_database[index_first_point]
         point2 = array_database[index_second_point]
-        if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
+        if edgeMatrix[index_first_point][index_second_point] ==2 or edgeMatrix[index_second_point][index_first_point] == 2:
             pointX = [point1.x, point2.x]
             pointY = [point1.y, point2.y]
             ax[1].plot(pointX, pointY, 'green')
@@ -172,69 +250,15 @@ if len(X) != 0:
 
 
 
-
-
-
-## one point interchange
-
-
-i=0
-while i < numberOfClusters:
-    startAgain = False
-    for group in arrayOfSubsets[i].connectedGroup:
-        indicator = onePointInterchange(
-            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups, numbPoints/numberOfClusters, 0.1)
-        if indicator > 0:
-            arrayOfSubsets[i].findConnectedGroup()
-            arrayOfSubsets[group].findConnectedGroup()
-            startAgain = True
-    i = 0 if startAgain else i + 1    
-            
-ax[2].scatter(x, y, c=groups, cmap='rainbow')
-
-firewalls = findFirewalls(arrayOfSubsets, edgeMatrix)
-print(len(firewalls))
-
-
-ax[2].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
-ax[2].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
-ax[2].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
-ax[2].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
-
-
-
-for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrix[index_first_point][index_second_point] ==2 or edgeMatrix[index_second_point][index_first_point] == 2:
-            pointX = [point1.x, point2.x]
-            pointY = [point1.y, point2.y]
-            ax[2].plot(pointX, pointY, 'green')
-
-
-
-
-conver = []
-for point in firewalls:
-    conver.append([point.x,point.y])
-
-X = np.array(conver)
-if len(X) != 0:
-    ax[2].scatter(X[:,0],X[:,1], c='green')
-
-
-
-
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Drawing the boundries of the range
-ax[2].plot([(xMax+xMin)/4, (yMax+yMin)/4],
+ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/4],
            [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
-ax[2].plot([(xMax+xMin)/4, (yMax+yMin)/1.25],
+ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/1.25],
            [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
-ax[2].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25],
+ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25],
            [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
-ax[2].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
+ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
            [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

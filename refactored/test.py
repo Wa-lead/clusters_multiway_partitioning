@@ -1,5 +1,7 @@
-a = [1,2,2,3,4,5,6,6,6]
 
-uterEdges = len([p for p in a if p == 6])
+from operator import attrgetter
+from point import *
+from group import *
+from copy import deepcopy
 
-print(uterEdges)
+max([], key=attrgetter('Dvalue'))

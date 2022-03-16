@@ -1,14 +1,14 @@
+from asyncore import loop
+from operator import attrgetter
 import numpy as np
-import matplotlib.pyplot as plt
-from math import sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 from k_means_constrained import KMeansConstrained
 from group import Group
-from point import Point
 import sys
-sys.setrecursionlimit(10000)
+from copy import deepcopy
 
+sys.setrecursionlimit(1000000)
 
 
 def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
@@ -46,8 +46,10 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
 
             point.Dvalue = externalCost - ineternalCost
 
-        subsetA.outerPoints = sorted(subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
-        subsetB.outerPoints = sorted(subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetA.outerPoints = sorted(
+            subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(
+            subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
 
         # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -60,7 +62,8 @@ def twoWayPartitioningEdgePoint(A, B, edgeMatrix, groups):
         # copies are used to maintain the state of the original sets
         subsetACopy = subsetA.outerPoints.copy()
         subsetBCopy = subsetB.outerPoints.copy()
-        smallerSet = subsetACopy if len(subsetACopy) < len(subsetBCopy) else subsetBCopy
+        smallerSet = subsetACopy if len(subsetACopy) < len(
+            subsetBCopy) else subsetBCopy
         for i in range(len(smallerSet)):
             gain = -10000
             indexOfa1 = 0
@@ -136,8 +139,12 @@ def divideIntoEvenClusters(x, y, numberOfClusters):  # done
     for i in range(len(x)):  # here is merely changing the format of the array
         changeFormatArray.append([x[i], y[i]])
     X = np.array(changeFormatArray)
-    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=numbPoints /
-                               numberOfClusters, size_max=numbPoints/numberOfClusters)
+    # kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=(numbPoints /
+    #                            numberOfClusters)*0.9, size_max=(numbPoints/numberOfClusters)
+    #                            * 1.10)
+    kmeans = KMeansConstrained(n_clusters=numberOfClusters, size_min=int((numbPoints /
+                               numberOfClusters)*0.9), size_max=int((numbPoints/numberOfClusters)*1.1)
+                               )
     kmeans.fit(X)
     return kmeans.labels_
 
@@ -151,7 +158,7 @@ def getClustersPoints(numberOfClusters, array_database):  # done
                 arrayOfSubsets[i].add(point)
     return arrayOfSubsets
 
-            
+
 def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
     legalSize = defaultSize + defaultSize * legalIncrese
     subsetA = A
@@ -188,15 +195,20 @@ def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
 
             point.Dvalue = externalCost - ineternalCost
 
-        subsetA.outerPoints = sorted(subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
-        subsetB.outerPoints = sorted(subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetA.outerPoints = sorted(
+            subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(
+            subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
 
         subsetACandidate = subsetA.outerPoints[0]
         subsetBCandidate = subsetB.outerPoints[0]
 
-        if len(subsetA.points) <= legalSize and len(subsetB.points) <= legalSize and (subsetACandidate.Dvalue>0 or subsetBCandidate.Dvalue>0):
+        # subsetACandidate = min(subsetA.outerPoints, key=attrgetter('Dvalue'))
+        # subsetBCandidate = min(subsetB.outerPoints, key=attrgetter('Dvalue'))
+
+        if len(subsetA.points) <= legalSize and len(subsetB.points) <= legalSize and (subsetACandidate.Dvalue > 0 or subsetBCandidate.Dvalue > 0):
             indicator += 1
-            if(subsetACandidate.Dvalue>subsetBCandidate.Dvalue):
+            if(subsetACandidate.Dvalue > subsetBCandidate.Dvalue):
                 subsetB.appendOuterPoint(subsetACandidate)
                 subsetA.removeOuterPoint(subsetACandidate)
                 groups[subsetACandidate.index] = groupB
@@ -209,7 +221,75 @@ def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
             break
 
     return indicator
-    
+
+
+def onePointInterchangeEnhanced(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
+    legalSizeUpperBoundery = defaultSize + defaultSize * legalIncrese
+    legalSizeLowerBoundery = defaultSize - defaultSize * legalIncrese
+    subsetA = A
+    subsetB = B
+    # groupA = A.name
+    groupB = B.name
+    indicator = 0
+
+    # create deepcopies so we can modify those copies in the iteration withougt affecting the original sets
+    subsetACopy = deepcopy(subsetA)
+    subsetBCopy = deepcopy(subsetB)
+
+    GBuffer = []
+    A_to_B_candidates = []
+    G = 0
+    loopThreshold = int(min(len(subsetA.points) - legalSizeLowerBoundery,
+                            legalSizeUpperBoundery - len(subsetB.points)))
+    i = 0
+    while i < loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
+        for point in subsetACopy.outerPoints:
+            ineternalCost = 0
+            externalCost = 0
+            # calculate the Dvalues of each set
+            for point2 in subsetACopy.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
+
+            for point2 in subsetBCopy.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
+            point.Dvalue = externalCost - ineternalCost
+
+        # find the highest candidate for interchange
+        candidate = max(subsetACopy.outerPoints, key=attrgetter('Dvalue'))
+        G += candidate.Dvalue  # add it to the gain
+        # this buffers the current interchanged points
+        A_to_B_candidates.append(candidate)
+        subsetACopy.removeOuterPoint(candidate)
+        subsetBCopy.appendOuterPoint(candidate)
+        # buffers both gain and the current interchanged points
+        GBuffer.append(
+            {'G': G, 'A_to_B_candidates': A_to_B_candidates.copy()})
+        subsetBCopy.findConnectedGroup()  # must update the groups
+        subsetACopy.findConnectedGroup()
+        i+=1
+
+    if(GBuffer):  # if the above process ocurred GBuffer would've stored something
+        bestGain = sorted(GBuffer, key=lambda x: x['G'], reverse=True)[0]
+        if bestGain['G'] > 0:  # if the highest buffered gain is positive
+            # the reason behind creating this is that the current interchanged points are deep copies and are not stored by reference.
+            B_to_add = []
+            for point in bestGain['A_to_B_candidates']:
+                for point2 in subsetA.outerPoints:
+                    if point.index == point2.index:
+                        B_to_add.append(point2)
+                        subsetA.removeOuterPoint(point2)
+
+            for point in B_to_add:
+                subsetB.appendOuterPoint(point)
+                point.group = groupB
+                groups[point.index] = groupB
+
+            indicator += 1  # indicates the change has happened
+
+    return indicator
+
 
 def findPotentialFireWalls(arrayOfSubsets):
     arrayOfEdgePoints = []
@@ -220,19 +300,19 @@ def findPotentialFireWalls(arrayOfSubsets):
     potentialFirewalls = []
     if arrayOfEdgePoints:
         for point in arrayOfEdgePoints:
-            outerEdges = [p for p in point.connectedWith if p.group != point.group]
-            potentialFirewalls.append({'point': point, 'outerEdges': outerEdges})
+            outerEdges = [
+                p for p in point.connectedWith if p.group != point.group]
+            potentialFirewalls.append(
+                {'point': point, 'outerEdges': outerEdges})
 
     return potentialFirewalls
 
 
-def findFirewalls(arrayOfSubsets,edgeMatrix):
+def findFirewalls(arrayOfSubsets, edgeMatrix):
     actualFirewalls = []
-    potentialFirewalls = sorted(findPotentialFireWalls(arrayOfSubsets), key=lambda x: len(x['outerEdges']), reverse=True)
-    # for p in potentialFirewalls:
-    #     print(len(p['outerEdges']))
+    potentialFirewalls = sorted(findPotentialFireWalls(
+        arrayOfSubsets), key=lambda x: len(x['outerEdges']), reverse=True)
 
-    
     if potentialFirewalls:
         for potential in potentialFirewalls:
             for potential2 in potentialFirewalls:
@@ -241,12 +321,9 @@ def findFirewalls(arrayOfSubsets,edgeMatrix):
 
             if(potential['outerEdges']):
                 actualFirewalls.append(potential['point'])
-                edgeMatrix[potential['point'].index] = [2 if item == 1 else item for item in edgeMatrix[potential['point'].index]]
-            potentialFirewalls = sorted(potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
+                edgeMatrix[potential['point'].index] = [
+                    2 if item == 1 else item for item in edgeMatrix[potential['point'].index]]
+            potentialFirewalls = sorted(
+                potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
-    
     return actualFirewalls
-
-    
-
-
