@@ -14,10 +14,10 @@ class Group():
     def __repr__(self):
             return f'{self.name}: {self.points}'
     
-    def findConnectedGroup(self):
+    def find_connected_groups(self):
         self.connectedGroup = []
         for point1 in self.points:
-            for point2 in point1.connectedWith:
+            for point2 in point1.connected_points:
                 if point2.group != self.name:
                     if not (point2.group  in self.connectedGroup):
                         self.connectedGroup.append(point2.group)
@@ -38,11 +38,11 @@ class Group():
             setattr(result, k, deepcopy(v, memo))
         return result
 
-    def removeOuterPoint(self,point):
+    def remove_outer_point(self,point):
         self.outerPoints.remove(point)
         self.points.remove(point)
 
-    def appendOuterPoint(self,point):
+    def append_outer_point(self,point):
         self.outerPoints.append(point)
         self.points.append(point)
         point.group = self.name

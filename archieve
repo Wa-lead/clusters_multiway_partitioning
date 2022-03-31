@@ -1,0 +1,63 @@
+incorrect one_way_interchange
+def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
+    legalSize = defaultSize + defaultSize * legalIncrese
+    subsetA = A
+    subsetB = B
+    groupA = A.name
+    groupB = B.name
+    indicator = 0
+    while subsetA.outerPoints and subsetB.outerPoints:
+        for point in subsetA.outerPoints:
+            ineternalCost = 0
+            externalCost = 0
+            # length of both subsets are the same
+            for point2 in subsetA.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
+
+            for point2 in subsetB.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
+
+            point.Dvalue = externalCost - ineternalCost
+
+        for point in subsetB.outerPoints:
+            ineternalCost = 0
+            externalCost = 0
+            # length of both subsets are the same
+            for point2 in subsetB.points:
+                ineternalCost += edgeMatrix[point.index
+                                            ][point2.index]
+
+            for point2 in subsetA.points:
+                externalCost += edgeMatrix[point.index
+                                           ][point2.index]
+
+            point.Dvalue = externalCost - ineternalCost
+
+        subsetA.outerPoints = sorted(
+            subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+        subsetB.outerPoints = sorted(
+            subsetB.outerPoints, key=lambda x: x.Dvalue, reverse=True)
+
+        subsetACandidate = subsetA.outerPoints[0]
+        subsetBCandidate = subsetB.outerPoints[0]
+
+        # subsetACandidate = min(subsetA.outerPoints, key=attrgetter('Dvalue'))
+        # subsetBCandidate = min(subsetB.outerPoints, key=attrgetter('Dvalue'))
+
+        if len(subsetA.points) <= legalSize and len(subsetB.points) <= legalSize and (subsetACandidate.Dvalue > 0 or subsetBCandidate.Dvalue > 0):
+            indicator += 1
+            if(subsetACandidate.Dvalue > subsetBCandidate.Dvalue):
+                subsetB.append_outer_point(subsetACandidate)
+                subsetA.remove_outer_point(subsetACandidate)
+                groups[subsetACandidate.index] = groupB
+            else:
+                subsetA.append_outer_point(subsetBCandidate)
+                subsetB.remove_outer_point(subsetBCandidate)
+                groups[subsetBCandidate.index] = groupA
+
+        else:
+            break
+
+    return indicator

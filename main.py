@@ -1,21 +1,17 @@
-from tracemalloc import start
 import numpy as np
 import matplotlib.pyplot as plt
 from math import sqrt
-import random
-import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
-from AlgorithemRefactored import *
-from collections import Counter
+from research_module import *
 from copy import copy, deepcopy
 from point import Point
 
 
 fig, ax = plt.subplots(2, figsize=(7,12))
 # fig, ax = plt.subplots(2, figsize=(4,7))
-connectingDistance = 1
-numberOfClusters = 5
+connect_distance = 1
+num_of_clusters = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -35,102 +31,68 @@ y = np.random.uniform(size=numbPoints, low=yMin,
                       high=yMax)
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Dividing the set into several even-size clusters
-groups = divideIntoEvenClusters(x, y, numberOfClusters)
+groups = divide_even_clusters(x, y, num_of_clusters)
 print(numbPoints)
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing The data point data base
 
-array_database = []
+array_of_points = []
 
 for i in range(numbPoints):
-    array_database.append(Point(groups[i], i, x[i], y[i], 1 if random.randint(0, 9) > 8 else 0, 0)
+    """
+    The last index of the point object indecates the state of the point:
+    0: Firewall
+    1: Normal 
+    2: Protected --> protects itself and it's edges (not a firewall) <---- this is used in the second approach of firewalls
+    """
+    array_of_points.append(Point(groups[i], i, x[i], y[i], 1, 0)  
                           )
 
-arrayOfSubsets = getClustersPoints(numberOfClusters, array_database)
+array_of_groups = get_cluster_points(num_of_clusters, array_of_points)
 
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#         Prepare the edgeMatrix
+#         Prepare the edge_matrix
 #         Why? because we want to assign cost to each edge
 
-edgeMatrix = [[0 for i in range(len(array_database))]
-              for j in range(len(array_database))]
+edge_matrix = [[0 for i in range(len(array_of_points))]
+              for j in range(len(array_of_points))]
 
 for index_first_point in range(numbPoints):  # x
     for index_second_point in range(index_first_point, numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
+        point1 = array_of_points[index_first_point]
+        point2 = array_of_points[index_second_point]
         distance = sqrt((point1.x-point2.x)**2 +
                         (point1.y-point2.y)**2)
-        if distance <= connectingDistance and distance != 0:
+        if distance <= connect_distance and distance != 0:
             point1.connect(point2)
-            edgeMatrix[index_first_point][index_second_point] = 1
-            edgeMatrix[index_second_point][index_first_point] = edgeMatrix[index_first_point][index_second_point]
+            edge_matrix[index_first_point][index_second_point] = 1
+            edge_matrix[index_second_point][index_first_point] = edge_matrix[index_first_point][index_second_point]
 
 # here we're finding the outer connected grouops for each and the also the outer points
-for group in arrayOfSubsets:
-    group.findConnectedGroup()
+for group in array_of_groups:
+    group.find_connected_groups()
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        # Plot the first graph before partioning
-
-
-# edgeMatrixCopy = deepcopy(edgeMatrix)
-# firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
-# print(len(firewalls))
-
-
-# ax[0].scatter(x, y, c=groups, cmap='rainbow')
-
-
-# for index_first_point in range(numbPoints):
-#     for index_second_point in range(index_first_point,numbPoints):
-#         point1 = array_database[index_first_point]
-#         point2 = array_database[index_second_point]
-#         if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
-#             pointX = [point1.x, point2.x]
-#             pointY = [point1.y, point2.y]
-#             ax[0].plot(pointX, pointY, 'green')
-
-# conver = []
-# for point in firewalls:
-#     conver.append([point.x,point.y])
-
-# X = np.array(conver)
-# if len(X) != 0:
-#     ax[0].scatter(X[:,0],X[:,1], c='green')
-
-# ax[0].scatter(x, y, c=groups, cmap='rainbow')
-
-# ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4],
-#            [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
-# ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25],
-#            [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
-# ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25],
-#            [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
-# ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
-#            [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
-# # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 # Multi-way Partioning
 i = 0
-while i < numberOfClusters:
+while i < num_of_clusters:
     startAgain = False
-    for group in arrayOfSubsets[i].connectedGroup:
-        indicator = twoWayPartitioningEdgePoint(
-            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups)
+    for group in array_of_groups[i].connectedGroup:
+        indicator = two_way_partitioning(
+            array_of_groups[i], array_of_groups[group], edge_matrix, groups)
         if indicator > 0:
-            arrayOfSubsets[i].findConnectedGroup()
-            arrayOfSubsets[group].findConnectedGroup()
+            array_of_groups[i].find_connected_groups()
+            array_of_groups[group].find_connected_groups()
             startAgain = True
     i = 0 if startAgain else i + 1    
             
 
 
-for group in arrayOfSubsets:
-    group.findConnectedGroup()
+for group in array_of_groups:
+    group.find_connected_groups()
 
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -144,36 +106,26 @@ ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.2
 ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
-edgeMatrixCopy = deepcopy(edgeMatrix)
-firewalls = findFirewalls(arrayOfSubsets,edgeMatrixCopy)
+edgeMatrixCopy = deepcopy(edge_matrix)
+firewalls, edges = find_firewalls(array_of_groups, protect='connected')
 print(len(firewalls))
-
 
 
 ## to plot edges
 for index_first_point in range(numbPoints):
     for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrixCopy[index_first_point][index_second_point] !=2 and edgeMatrixCopy[index_second_point][index_first_point] !=0:
+        point1 = array_of_points[index_first_point]
+        point2 = array_of_points[index_second_point]
+        if edgeMatrixCopy[index_first_point][index_second_point] ==1:
             pointX = [point1.x, point2.x]
             pointY = [point1.y, point2.y]
             ax[0].plot(pointX, pointY, 'black')
 
-## to highlight edges
-for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrixCopy[index_first_point][index_second_point] ==2 or edgeMatrixCopy[index_second_point][index_first_point] == 2:
-            pointX = [point1.x, point2.x]
-            pointY = [point1.y, point2.y]
-            ax[0].plot(pointX, pointY, 'green')
-
-
-
-
-
+#plot the protected edges
+for edge in edges:
+    point_x = [edge[0][0],edge[1][0]]
+    point_y = [edge[0][1],edge[1][1]]
+    ax[0].plot(point_x, point_y, 'green')
 
 conver = []
 for point in firewalls:
@@ -190,20 +142,20 @@ if len(X) != 0:
 
 ## one point interchange
 i=0
-while i < numberOfClusters:
+while i < num_of_clusters:
     startAgain = False
-    for group in arrayOfSubsets[i].connectedGroup:
-        indicator = onePointInterchangeEnhanced(
-            arrayOfSubsets[i], arrayOfSubsets[group], edgeMatrix, groups, numbPoints/numberOfClusters, 0.1)
+    for group in array_of_groups[i].connectedGroup:
+        indicator = one_way_partioning(
+            array_of_groups[i], array_of_groups[group], edge_matrix, groups, numbPoints/num_of_clusters, 0.1)
         if indicator > 0:
-            arrayOfSubsets[i].findConnectedGroup()
-            arrayOfSubsets[group].findConnectedGroup()
+            array_of_groups[i].find_connected_groups()
+            array_of_groups[group].find_connected_groups()
             startAgain = True
     i = 0 if startAgain else i + 1    
             
 ax[1].scatter(x, y, c=groups, cmap='rainbow')
 
-firewalls = findFirewalls(arrayOfSubsets, edgeMatrix)
+firewalls, edges = find_firewalls(array_of_groups, protect='connected')
 print(len(firewalls))
 
 
@@ -220,23 +172,19 @@ ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], co
 ## to plot edges
 for index_first_point in range(numbPoints):
     for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrix[index_second_point][index_first_point] !=0 and edgeMatrix[index_first_point][index_second_point] !=2 :
+        point1 = array_of_points[index_first_point]
+        point2 = array_of_points[index_second_point]
+        if edge_matrix[index_second_point][index_first_point] !=0 and edge_matrix[index_first_point][index_second_point] !=2 :
             pointX = [point1.x, point2.x]
             pointY = [point1.y, point2.y]
             ax[1].plot(pointX, pointY, 'black')
 
-for index_first_point in range(numbPoints):
-    for index_second_point in range(index_first_point,numbPoints):
-        point1 = array_database[index_first_point]
-        point2 = array_database[index_second_point]
-        if edgeMatrix[index_first_point][index_second_point] ==2 or edgeMatrix[index_second_point][index_first_point] == 2:
-            pointX = [point1.x, point2.x]
-            pointY = [point1.y, point2.y]
-            ax[1].plot(pointX, pointY, 'green')
 
 
+for edge in edges:
+    point_x = [edge[0][0],edge[1][0]]
+    point_y = [edge[0][1],edge[1][1]]
+    ax[1].plot(point_x, point_y, 'green')
 
 
 conver = []
