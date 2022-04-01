@@ -8,7 +8,7 @@ from copy import deepcopy
 sys.setrecursionlimit(1000000)
 
 
-def two_way_partitioning(A, B, edge_matrix, groups):
+def two_way_partitioning(A, B, edge_matrix, groups_):
     subsetA = A
     subsetB = B
     groupA = A.name
@@ -21,11 +21,11 @@ def two_way_partitioning(A, B, edge_matrix, groups):
             # length of both subsets are the same
             for point2 in subsetA.points:
                 ineternalCost += edge_matrix[point.index
-                                            ][point2.index]
+                                             ][point2.index]
 
             for point2 in subsetB.points:
                 externalCost += edge_matrix[point.index
-                                           ][point2.index]
+                                            ][point2.index]
 
             point.Dvalue = externalCost - ineternalCost
 
@@ -35,11 +35,11 @@ def two_way_partitioning(A, B, edge_matrix, groups):
             # length of both subsets are the same
             for point2 in subsetB.points:
                 ineternalCost += edge_matrix[point.index
-                                            ][point2.index]
+                                             ][point2.index]
 
             for point2 in subsetA.points:
                 externalCost += edge_matrix[point.index
-                                           ][point2.index]
+                                            ][point2.index]
 
             point.Dvalue = externalCost - ineternalCost
 
@@ -70,7 +70,7 @@ def two_way_partitioning(A, B, edge_matrix, groups):
                 for k in range(len(subsetBCopy)):
                     newGain = subsetACopy[j].Dvalue + subsetBCopy[k].Dvalue - \
                         2*edge_matrix[subsetACopy[j].index
-                                     ][subsetBCopy[k].index]
+                                      ][subsetBCopy[k].index]
                     if newGain > gain:
                         gain = newGain
                         indexOfa1 = j
@@ -80,11 +80,11 @@ def two_way_partitioning(A, B, edge_matrix, groups):
             # Recalculating the Dvalue of each in the session
             for j in range(len(subsetACopy)):
                 subsetACopy[j].Dvalue = subsetACopy[j].Dvalue + 2*edge_matrix[subsetACopy[j].index
-                                                                             ][subsetACopy[indexOfa1].index] - 2*edge_matrix[subsetACopy[j].index][subsetBCopy[indexOfb1].index]
+                                                                              ][subsetACopy[indexOfa1].index] - 2*edge_matrix[subsetACopy[j].index][subsetBCopy[indexOfb1].index]
 
             for j in range(len(subsetBCopy)):
                 subsetBCopy[j].Dvalue = subsetBCopy[j].Dvalue + 2*edge_matrix[subsetBCopy[j].index
-                                                                             ][subsetBCopy[indexOfb1].index] - 2*edge_matrix[subsetBCopy[j].index][subsetACopy[indexOfa1].index]
+                                                                              ][subsetBCopy[indexOfb1].index] - 2*edge_matrix[subsetBCopy[j].index][subsetACopy[indexOfa1].index]
             # ------------------------------------------- the mistake is here, fix the popping problem
 
             # remove the highest gain points from the set
@@ -122,10 +122,10 @@ def two_way_partitioning(A, B, edge_matrix, groups):
         indicator = indicator + 1
 
         for point in subsetA.outerPoints:  # update the group array
-            groups[point.index] = groupA
+            groups_[point.index] = groupA
 
         for point in subsetB.outerPoints:  # update the group array
-            groups[point.index] = groupB
+            groups_[point.index] = groupB
 
     return indicator
 
@@ -137,8 +137,7 @@ def divide_even_clusters(x, y, num_of_clusters):  # done
         changeFormatArray.append([x[i], y[i]])
     X = np.array(changeFormatArray)
     kmeans = KMeansConstrained(n_clusters=num_of_clusters, size_min=int((numbPoints /
-                               num_of_clusters)*0.9), size_max=int((numbPoints/num_of_clusters)*1.1)
-                               )
+                               num_of_clusters)*0.9), size_max=int((numbPoints/num_of_clusters)*1.1), max_iter=10000)
     kmeans.fit(X)
     return kmeans.labels_
 
@@ -153,7 +152,7 @@ def get_cluster_points(num_of_clusters, array_of_points):  # done
     return array_of_subsets
 
 
-def one_way_partioning(A, B, edge_matrix, groups, def_size, legal_increaserese):
+def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese):
     legalSizeUpperBoundery = def_size + def_size * legal_increaserese
     legalSizeLowerBoundery = def_size - def_size * legal_increaserese
     subsetA = A
@@ -179,11 +178,11 @@ def one_way_partioning(A, B, edge_matrix, groups, def_size, legal_increaserese):
             # calculate the Dvalues of each set
             for point2 in subsetACopy.points:
                 ineternalCost += edge_matrix[point.index
-                                            ][point2.index]
+                                             ][point2.index]
 
             for point2 in subsetBCopy.points:
                 externalCost += edge_matrix[point.index
-                                           ][point2.index]
+                                            ][point2.index]
             point.Dvalue = externalCost - ineternalCost
 
         # find the highest candidate for interchange
@@ -196,7 +195,7 @@ def one_way_partioning(A, B, edge_matrix, groups, def_size, legal_increaserese):
         # buffers both gain and the current interchanged points
         GBuffer.append(
             {'G': G, 'A_to_B_candidates': A_to_B_candidates.copy()})
-        subsetBCopy.find_connected_groups()  # must update the groups
+        subsetBCopy.find_connected_groups()  # must update the groups_
         subsetACopy.find_connected_groups()
         i += 1
 
@@ -214,7 +213,7 @@ def one_way_partioning(A, B, edge_matrix, groups, def_size, legal_increaserese):
             for point in B_to_add:
                 subsetB.append_outer_point(point)
                 point.group = groupB
-                groups[point.index] = groupB
+                groups_[point.index] = groupB
 
             indicator += 1  # indicates the change has happened
 
@@ -260,13 +259,13 @@ def find_firewalls(array_of_subsets, protect=None):
                 # if the potential still has edges the above removal of already-protected edges
                 if(potential['outerEdges']):
                     current_selected_firewall = potential['point']
-                    current_selected_firewall.state =1
+                    current_selected_firewall.state = 1
                     actualFirewalls.append(current_selected_firewall)
 
                     # this assignes the value 2 which means protected to the points connected to the current firewall
                     for point in current_selected_firewall.connected_points:
-                        protectedEdges.append([(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
-                    
+                        protectedEdges.append(
+                            [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
 
                 # Sort the current potientials based on number of outer edges again
                 potentialFirewalls = sorted(
@@ -288,7 +287,7 @@ def find_firewalls(array_of_subsets, protect=None):
             because once we assign a firewall, all its edges will be protected, and hence, must be removed
             from the count of the following selections.
             """
-            for potential in potentialFirewalls:  
+            for potential in potentialFirewalls:
                 for potential2 in potentialFirewalls:
                     if potential['point'] in potential2['outerEdges']:
                         potential2['outerEdges'].remove(potential['point'])
@@ -296,7 +295,7 @@ def find_firewalls(array_of_subsets, protect=None):
                 if(potential['outerEdges']):
                     current_selected_firewall = potential['point']
                     if current_selected_firewall.state != 2:
-                        current_selected_firewall.state =1
+                        current_selected_firewall.state = 1
                         actualFirewalls.append(current_selected_firewall)
 
                     # this assignes the value 2 which means protected to the points connected to the current firewall
@@ -305,13 +304,16 @@ def find_firewalls(array_of_subsets, protect=None):
                         For future reference: if applying a simulation about infection, we will need also to update the edge matrix tha ease the process of tracking protected edges.
                         """
                         point.state = 2
-                        protectedEdges.append([(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
-                        #now we also protect the edges of the protected (state: 2)  points
+                        protectedEdges.append(
+                            [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
+                        # now we also protect the edges of the protected (state: 2)  points
                         for point2 in point.connected_points:
-                            protectedEdges.append([(point.x, point.y), (point2.x, point2.y)])
-                
+                            protectedEdges.append(
+                                [(point.x, point.y), (point2.x, point2.y)])
 
-                potentialFirewalls = [firewall for firewall in potentialFirewalls if firewall['point'].state!=2] #<-- keeps only the unprotected potential candidates
+                # <-- keeps only the unprotected potential candidates
+                potentialFirewalls = [
+                    firewall for firewall in potentialFirewalls if firewall['point'].state != 2]
 
                 # Sort the current potientials based on number of outer edges again
                 potentialFirewalls = sorted(

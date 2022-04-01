@@ -1,5 +1,5 @@
 incorrect one_way_interchange
-def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
+def onePointInterchange(A, B, edgeMatrix, groups_, defaultSize, legalIncrese):
     legalSize = defaultSize + defaultSize * legalIncrese
     subsetA = A
     subsetB = B
@@ -51,11 +51,11 @@ def onePointInterchange(A, B, edgeMatrix, groups, defaultSize, legalIncrese):
             if(subsetACandidate.Dvalue > subsetBCandidate.Dvalue):
                 subsetB.append_outer_point(subsetACandidate)
                 subsetA.remove_outer_point(subsetACandidate)
-                groups[subsetACandidate.index] = groupB
+                groups_[subsetACandidate.index] = groupB
             else:
                 subsetA.append_outer_point(subsetBCandidate)
                 subsetB.remove_outer_point(subsetBCandidate)
-                groups[subsetBCandidate.index] = groupA
+                groups_[subsetBCandidate.index] = groupA
 
         else:
             break

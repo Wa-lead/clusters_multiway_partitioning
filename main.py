@@ -24,14 +24,14 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 2
+lambda0 = 0.7
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
                       high=yMax)
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Dividing the set into several even-size clusters
-groups = divide_even_clusters(x, y, num_of_clusters)
+groups_ = divide_even_clusters(x, y, num_of_clusters)
 print(numbPoints)
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing The data point data base
@@ -45,7 +45,7 @@ for i in range(numbPoints):
     1: Normal 
     2: Protected --> protects itself and it's edges (not a firewall) <---- this is used in the second approach of firewalls
     """
-    array_of_points.append(Point(groups[i], i, x[i], y[i], 1, 0)  
+    array_of_points.append(Point(groups_[i], i, x[i], y[i], 1, 0)  
                           )
 
 array_of_groups = get_cluster_points(num_of_clusters, array_of_points)
@@ -82,7 +82,7 @@ while i < num_of_clusters:
     startAgain = False
     for group in array_of_groups[i].connectedGroup:
         indicator = two_way_partitioning(
-            array_of_groups[i], array_of_groups[group], edge_matrix, groups)
+            array_of_groups[i], array_of_groups[group], edge_matrix, groups_)
         if indicator > 0:
             array_of_groups[i].find_connected_groups()
             array_of_groups[group].find_connected_groups()
@@ -97,7 +97,7 @@ for group in array_of_groups:
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-ax[0].scatter(x, y, c=groups, cmap='rainbow')
+ax[0].scatter(x, y, c=groups_, cmap='rainbow')
 
 
 
@@ -146,14 +146,14 @@ while i < num_of_clusters:
     startAgain = False
     for group in array_of_groups[i].connectedGroup:
         indicator = one_way_partioning(
-            array_of_groups[i], array_of_groups[group], edge_matrix, groups, numbPoints/num_of_clusters, 0.1)
+            array_of_groups[i], array_of_groups[group], edge_matrix, groups_, numbPoints/num_of_clusters, 0.1)
         if indicator > 0:
             array_of_groups[i].find_connected_groups()
             array_of_groups[group].find_connected_groups()
             startAgain = True
     i = 0 if startAgain else i + 1    
             
-ax[1].scatter(x, y, c=groups, cmap='rainbow')
+ax[1].scatter(x, y, c=groups_, cmap='rainbow')
 
 firewalls, edges = find_firewalls(array_of_groups, protect='connected')
 print(len(firewalls))
