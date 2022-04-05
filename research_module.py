@@ -4,9 +4,52 @@ from k_means_constrained import KMeansConstrained
 from group import Group
 import sys
 from copy import deepcopy
+from math import *
 
 sys.setrecursionlimit(1000000)
 
+
+#---- setup the problem formulation
+
+def form_edge_matrix(array_of_points, connect_distance):
+    numbPoints = len(array_of_points)
+    edge_matrix = [[0 for i in range(len(array_of_points))]
+                for j in range(len(array_of_points))]
+
+    for index_first_point in range(numbPoints):  # x
+        for index_second_point in range(index_first_point, numbPoints):
+            point1 = array_of_points[index_first_point]
+            point2 = array_of_points[index_second_point]
+            distance = sqrt((point1.x-point2.x)**2 +
+                            (point1.y-point2.y)**2)
+            if distance <= connect_distance and distance != 0:
+                point1.connect(point2)
+                edge_matrix[index_first_point][index_second_point] = 1
+                edge_matrix[index_second_point][index_first_point] = edge_matrix[index_first_point][index_second_point]
+
+    return edge_matrix
+
+def divide_even_clusters(x, y, num_of_clusters):  # done
+    numbPoints = len(x)
+    changeFormatArray = []
+    for i in range(len(x)):  # here is merely changing the format of the array
+        changeFormatArray.append([x[i], y[i]])
+    X = np.array(changeFormatArray)
+    kmeans = KMeansConstrained(n_clusters=num_of_clusters, size_min=int((numbPoints /
+                               num_of_clusters)*0.9), size_max=int((numbPoints/num_of_clusters)*1.1), max_iter=10000)
+    kmeans.fit(X)
+    return kmeans.labels_
+
+def get_cluster_points(num_of_clusters, array_of_points):  # done
+    array_of_subsets = []
+    for i in range(num_of_clusters):
+        array_of_subsets.append(Group(i))
+        for point in array_of_points:
+            if(point.group == i):
+                array_of_subsets[i].add(point)
+    return array_of_subsets
+
+#---- paritioing 
 
 def two_way_partitioning(A, B, edge_matrix, groups_):
     subsetA = A
@@ -129,29 +172,6 @@ def two_way_partitioning(A, B, edge_matrix, groups_):
 
     return indicator
 
-
-def divide_even_clusters(x, y, num_of_clusters):  # done
-    numbPoints = len(x)
-    changeFormatArray = []
-    for i in range(len(x)):  # here is merely changing the format of the array
-        changeFormatArray.append([x[i], y[i]])
-    X = np.array(changeFormatArray)
-    kmeans = KMeansConstrained(n_clusters=num_of_clusters, size_min=int((numbPoints /
-                               num_of_clusters)*0.9), size_max=int((numbPoints/num_of_clusters)*1.1), max_iter=10000)
-    kmeans.fit(X)
-    return kmeans.labels_
-
-
-def get_cluster_points(num_of_clusters, array_of_points):  # done
-    array_of_subsets = []
-    for i in range(num_of_clusters):
-        array_of_subsets.append(Group(i))
-        for point in array_of_points:
-            if(point.group == i):
-                array_of_subsets[i].add(point)
-    return array_of_subsets
-
-
 def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese):
     legalSizeUpperBoundery = def_size + def_size * legal_increaserese
     legalSizeLowerBoundery = def_size - def_size * legal_increaserese
@@ -219,6 +239,14 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
 
     return indicator
 
+#------- firewalls related
+
+def find_firewalls(array_of_subsets, protect=None):
+    if protect == 'self' or protect == None:
+        return self_defense_variation(array_of_subsets)
+        # ------------------------------- this is another variation that protects the connected nodes
+    elif protect == 'connected':
+        return connceted_defense_variation(array_of_subsets)
 
 def find_potential_firewalls(array_of_subsets):
     arrayOfEdgePoints = []
@@ -236,87 +264,85 @@ def find_potential_firewalls(array_of_subsets):
 
     return potentialFirewalls
 
+def self_defense_variation(array_of_subsets):
+    actualFirewalls = []
+    protectedEdges = []
+    # This finds all the potential ( outer points ) firewalls, then sort them based NUMBER of outer edges
+    potentialFirewalls = sorted(find_potential_firewalls(
+        array_of_subsets), key=lambda x: len(x['outerEdges']), reverse=True)
 
-def find_firewalls(array_of_subsets, protect=None):
-    if protect == 'self' or protect == None:
-        actualFirewalls = []
-        protectedEdges = []
-        # This finds all the potential ( outer points ) firewalls, then sort them based NUMBER of outer edges
-        potentialFirewalls = sorted(find_potential_firewalls(
-            array_of_subsets), key=lambda x: len(x['outerEdges']), reverse=True)
+    if potentialFirewalls:  # if there are outerpoints:
+        """
+        The following code is to remove the the current selected candidate from the count of other potentials
+        outer edge, why?
+        because once we assign a firewall, all its edges will be protected, and hence, must be removed
+        from the count of the following selections.
+        """
+        for potential in potentialFirewalls:  # this segemnts is to remove the
+            for potential2 in potentialFirewalls:
+                if potential['point'] in potential2['outerEdges']:
+                    potential2['outerEdges'].remove(potential['point'])
+            # if the potential still has edges the above removal of already-protected edges
+            if(potential['outerEdges']):
+                current_selected_firewall = potential['point']
+                current_selected_firewall.state = 1
+                actualFirewalls.append(current_selected_firewall)
 
-        if potentialFirewalls:  # if there are outerpoints:
-            """
-            The following code is to remove the the current selected candidate from the count of other potentials
-            outer edge, why?
-            because once we assign a firewall, all its edges will be protected, and hence, must be removed
-            from the count of the following selections.
-            """
-            for potential in potentialFirewalls:  # this segemnts is to remove the
-                for potential2 in potentialFirewalls:
-                    if potential['point'] in potential2['outerEdges']:
-                        potential2['outerEdges'].remove(potential['point'])
-                # if the potential still has edges the above removal of already-protected edges
-                if(potential['outerEdges']):
-                    current_selected_firewall = potential['point']
+                # this assignes the value 2 which means protected to the points connected to the current firewall
+                for point in current_selected_firewall.connected_points:
+                    protectedEdges.append(
+                        [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
+
+            # Sort the current potientials based on number of outer edges again
+            potentialFirewalls = sorted(
+                potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
+
+    return actualFirewalls, protectedEdges
+
+def connceted_defense_variation(array_of_subsets):
+    actualFirewalls = []
+    protectedEdges = []
+    # This finds all the potential ( outer points ) firewalls, then sort them based NUMBER of outer edges
+    potentialFirewalls = sorted(find_potential_firewalls(
+        array_of_subsets), key=lambda x: len(x['outerEdges']), reverse=True)
+
+    if potentialFirewalls:  # if there are outerpoints:
+        """
+        The following code is to remove the the current selected candidate from the count of other potentials
+        outer edge, why?
+        because once we assign a firewall, all its edges will be protected, and hence, must be removed
+        from the count of the following selections.
+        """
+        for potential in potentialFirewalls:
+            for potential2 in potentialFirewalls:
+                if potential['point'] in potential2['outerEdges']:
+                    potential2['outerEdges'].remove(potential['point'])
+            # if the potential still has edges the above removal of already-protected edges
+            if(potential['outerEdges']):
+                current_selected_firewall = potential['point']
+                if current_selected_firewall.state != 2:
                     current_selected_firewall.state = 1
                     actualFirewalls.append(current_selected_firewall)
 
-                    # this assignes the value 2 which means protected to the points connected to the current firewall
-                    for point in current_selected_firewall.connected_points:
+                # this assignes the value 2 which means protected to the points connected to the current firewall
+                for point in current_selected_firewall.connected_points:
+                    """
+                    For future reference: if applying a simulation about infection, we will need also to update the edge matrix tha ease the process of tracking protected edges.
+                    """
+                    point.state = 2
+                    protectedEdges.append(
+                        [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
+                    # now we also protect the edges of the protected (state: 2)  points
+                    for point2 in point.connected_points:
                         protectedEdges.append(
-                            [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
+                            [(point.x, point.y), (point2.x, point2.y)])
 
-                # Sort the current potientials based on number of outer edges again
-                potentialFirewalls = sorted(
-                    potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
+            # <-- keeps only the unprotected potential candidates
+            potentialFirewalls = [
+                firewall for firewall in potentialFirewalls if firewall['point'].state != 2]
 
-        return actualFirewalls, protectedEdges
-        # ------------------------------- this is another variation that protects the connected nodes
-    elif protect == 'connected':
-        actualFirewalls = []
-        protectedEdges = []
-        # This finds all the potential ( outer points ) firewalls, then sort them based NUMBER of outer edges
-        potentialFirewalls = sorted(find_potential_firewalls(
-            array_of_subsets), key=lambda x: len(x['outerEdges']), reverse=True)
+            # Sort the current potientials based on number of outer edges again
+            potentialFirewalls = sorted(
+                potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
-        if potentialFirewalls:  # if there are outerpoints:
-            """
-            The following code is to remove the the current selected candidate from the count of other potentials
-            outer edge, why?
-            because once we assign a firewall, all its edges will be protected, and hence, must be removed
-            from the count of the following selections.
-            """
-            for potential in potentialFirewalls:
-                for potential2 in potentialFirewalls:
-                    if potential['point'] in potential2['outerEdges']:
-                        potential2['outerEdges'].remove(potential['point'])
-                # if the potential still has edges the above removal of already-protected edges
-                if(potential['outerEdges']):
-                    current_selected_firewall = potential['point']
-                    if current_selected_firewall.state != 2:
-                        current_selected_firewall.state = 1
-                        actualFirewalls.append(current_selected_firewall)
-
-                    # this assignes the value 2 which means protected to the points connected to the current firewall
-                    for point in current_selected_firewall.connected_points:
-                        """
-                        For future reference: if applying a simulation about infection, we will need also to update the edge matrix tha ease the process of tracking protected edges.
-                        """
-                        point.state = 2
-                        protectedEdges.append(
-                            [(current_selected_firewall.x, current_selected_firewall.y), (point.x, point.y)])
-                        # now we also protect the edges of the protected (state: 2)  points
-                        for point2 in point.connected_points:
-                            protectedEdges.append(
-                                [(point.x, point.y), (point2.x, point2.y)])
-
-                # <-- keeps only the unprotected potential candidates
-                potentialFirewalls = [
-                    firewall for firewall in potentialFirewalls if firewall['point'].state != 2]
-
-                # Sort the current potientials based on number of outer edges again
-                potentialFirewalls = sorted(
-                    potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
-
-        return actualFirewalls, protectedEdges
+    return actualFirewalls, protectedEdges

@@ -11,7 +11,7 @@ from point import Point
 fig, ax = plt.subplots(2, figsize=(7,12))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connect_distance = 1
-num_of_clusters = 2
+num_of_clusters = 4
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing the poisson distribution pibts
@@ -24,7 +24,7 @@ xDelta = xMax-xMin
 yDelta = yMax-yMin  # rectangle dimensions
 areaTotal = xDelta*yDelta
 
-lambda0 = 0.7
+lambda0 = 0.5
 numbPoints = (scipy.stats.poisson(lambda0*areaTotal).rvs())
 x = np.random.uniform(size=numbPoints, low=xMin, high=xMax)
 y = np.random.uniform(size=numbPoints, low=yMin,
@@ -50,25 +50,11 @@ for i in range(numbPoints):
 
 array_of_groups = get_cluster_points(num_of_clusters, array_of_points)
 
-
-
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #         Prepare the edge_matrix
 #         Why? because we want to assign cost to each edge
 
-edge_matrix = [[0 for i in range(len(array_of_points))]
-              for j in range(len(array_of_points))]
-
-for index_first_point in range(numbPoints):  # x
-    for index_second_point in range(index_first_point, numbPoints):
-        point1 = array_of_points[index_first_point]
-        point2 = array_of_points[index_second_point]
-        distance = sqrt((point1.x-point2.x)**2 +
-                        (point1.y-point2.y)**2)
-        if distance <= connect_distance and distance != 0:
-            point1.connect(point2)
-            edge_matrix[index_first_point][index_second_point] = 1
-            edge_matrix[index_second_point][index_first_point] = edge_matrix[index_first_point][index_second_point]
+edge_matrix = form_edge_matrix(array_of_points,connect_distance)
 
 # here we're finding the outer connected grouops for each and the also the outer points
 for group in array_of_groups:
@@ -89,26 +75,21 @@ while i < num_of_clusters:
             startAgain = True
     i = 0 if startAgain else i + 1    
             
+edgeMatrixCopy = deepcopy(edge_matrix)
+firewalls, edges = find_firewalls(array_of_groups, protect='connected')
+print(len(firewalls))
 
 
-for group in array_of_groups:
-    group.find_connected_groups()
 
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ax[0].scatter(x, y, c=groups_, cmap='rainbow')
 
-
-
 ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
 ax[0].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
 ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 ax[0].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
-
-edgeMatrixCopy = deepcopy(edge_matrix)
-firewalls, edges = find_firewalls(array_of_groups, protect='connected')
-print(len(firewalls))
 
 
 ## to plot edges
@@ -135,11 +116,11 @@ X = np.array(conver)
 if len(X) != 0:
     ax[0].scatter(X[:,0],X[:,1], c='green')
 
+#---------------------------------------------------------------------------------------
 
-
-
-
-
+# ---------- enforcing the new changes before the one way partioning
+for group in array_of_groups:
+    group.find_connected_groups()
 ## one point interchange
 i=0
 while i < num_of_clusters:
@@ -152,22 +133,16 @@ while i < num_of_clusters:
             array_of_groups[group].find_connected_groups()
             startAgain = True
     i = 0 if startAgain else i + 1    
-            
-ax[1].scatter(x, y, c=groups_, cmap='rainbow')
 
 firewalls, edges = find_firewalls(array_of_groups, protect='connected')
-print(len(firewalls))
+print(len(firewalls))            
 
+ax[1].scatter(x, y, c=groups_, cmap='rainbow')
 
 ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/1.25], color='black')
 ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/1.25], color='black')
 ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/1.25], [(xMax+xMin)/1.25, (yMax+yMin)/4], color='black')
 ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/4], [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
-
-
-
-
-
 
 ## to plot edges
 for index_first_point in range(numbPoints):
@@ -195,9 +170,6 @@ X = np.array(conver)
 if len(X) != 0:
     ax[1].scatter(X[:,0],X[:,1], c='green')
 
-
-
-
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Drawing the boundries of the range
 ax[1].plot([(xMax+xMin)/4, (yMax+yMin)/4],
@@ -210,5 +182,7 @@ ax[1].plot([(xMax+xMin)/1.25, (yMax+yMin)/4],
            [(xMax+xMin)/4, (yMax+yMin)/4], color='black')
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+for group in array_of_groups:
+    print(group.name, len(group.points))
 
 plt.show()

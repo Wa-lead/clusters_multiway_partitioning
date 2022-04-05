@@ -1,14 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from math import floor, sqrt
+from math import floor
 import scipy.stats
 import matplotlib.pyplot as plt
 from research_module import *
-from copy import copy, deepcopy
 from point import Point
 
 
-fig, ax = plt.subplots(nrows=1, ncols=5, figsize=(30, 5))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connect_distance = 1
 
@@ -33,6 +31,8 @@ y = np.random.uniform(size=numbPoints, low=yMin,
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Preparing The data point data base
 
+
+
 array_of_points = []
 
 for i in range(numbPoints):
@@ -47,47 +47,46 @@ for i in range(numbPoints):
     array_of_points.append(Point(None, i, x[i], y[i], 1, 0)
                            )
 
+# ------------------------------------------------------------ create edge matrix
+
+edge_matrix = form_edge_matrix(array_of_points, connect_distance)
 
 
-#--------------------------- create edge matrix
-edge_matrix = [[0 for i in range(len(array_of_points))]
-               for j in range(len(array_of_points))]
-for index_first_point in range(numbPoints):  # x
-    for index_second_point in range(index_first_point, numbPoints):
-        point1 = array_of_points[index_first_point]
-        point2 = array_of_points[index_second_point]
-        distance = sqrt((point1.x-point2.x)**2 +
-                        (point1.y-point2.y)**2)
-        if distance <= connect_distance and distance != 0:
-            point1.connect(point2)
-            edge_matrix[index_first_point][index_second_point] = 1
-            edge_matrix[index_second_point][index_first_point] = edge_matrix[index_first_point][index_second_point]
+# ------------------------------------------------------------ prepare vars for bisestion
+desired_number_of_firewalls = 25
+minimum_points_per_clusters = int(numbPoints/6)
 
-#-------------------------------------- prepare vars for bisestion
-desired_number_of_firewalls = 20 
-possible_num_of_clusters = [i for i in range(2, 17)] #this sets the range of acceptable clusters
+# this sets the range of acceptable clusters
+possible_num_of_clusters = [i for i in range(2, minimum_points_per_clusters)]
 
-#bestion vars -- similar to binary tree
-_high = len(possible_num_of_clusters)-1 
+#-########################################################--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# this allocates enough graphs to allocate for maximum possible number of graphs based on size of the cluster array (log2(n))
+number_of_graphs = floor(log2(len(possible_num_of_clusters))) #<--- log2(n)
+fig, ax = plt.subplots(nrows=1, ncols=number_of_graphs, figsize=(number_of_graphs*6, number_of_graphs))
+#-########################################################--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# bestion vars -- similar to binary tree
+_high = len(possible_num_of_clusters)-1
 _low = 0
 
-#we need the buffer for comparison purposes
+# we need the buffer for comparison purposes
 cluster_to_firewalls_buffer = []
 
 # start of besction
-blah = 0 #<--- just for plutting purposes
-while _high > _low:
+index = 0  # <--- just for plutting purposes
+while _high >= _low:
 
-    mid = floor((_low+_high)/2) #calculate the mid for splitting purposes
+    mid = floor((_low+_high)/2)  # calculate the mid for splitting purposes
     num_of_clusters = mid
 
-    groups_ = divide_even_clusters(x, y, num_of_clusters)# divide the current points into clusters
+    # divide the current points into clusters
+    groups_ = divide_even_clusters(x, y, num_of_clusters)
 
-    #now we assign the groups to each point
+    # now we assign the groups to each point
     for i in range(numbPoints):
         array_of_points[i].group = groups_[i]
 
-    #we prepare the array that holds all the groups with their points
+    # we prepare the array that holds all the groups with their points
     array_of_groups = get_cluster_points(num_of_clusters, array_of_points)
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +95,7 @@ while _high > _low:
     for group in array_of_groups:
         group.find_connected_groups()
 
-    # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # Multi-way Partioning
     i = 0
@@ -127,15 +126,15 @@ while _high > _low:
                 startAgain = True
         i = 0 if startAgain else i + 1
 
-    #This finds the firewalls of the current distribution along with the protected edges based on the selected variation
+    # This finds the firewalls of the current distribution along with the protected edges based on the selected variation
     firewalls, edges = find_firewalls(array_of_groups, protect='self')
-    cluster_to_firewalls_buffer.append((num_of_clusters, len(firewalls)))
+    cluster_to_firewalls_buffer.append((f'clusters: {num_of_clusters}', f'firewalls: {len(firewalls)}'))
 
-    ax[blah].scatter(x, y, c=groups_, cmap='rainbow')
+    ax[index].scatter(x, y, c=groups_, cmap='rainbow')
     for edge in edges:
         point_x = [edge[0][0], edge[1][0]]
         point_y = [edge[0][1], edge[1][1]]
-        ax[blah].plot(point_x, point_y, 'green')
+        ax[index].plot(point_x, point_y, 'green')
 
     conver = []
     for point in firewalls:
@@ -143,20 +142,20 @@ while _high > _low:
 
     X = np.array(conver)
     if len(X) != 0:
-        ax[blah].scatter(X[:, 0], X[:, 1], c='green')
+        ax[index].scatter(X[:, 0], X[:, 1], c='green')
 
-    blah += 1
+    index += 1
 
-    #if the number of firewalls is met, then break, NOT SURE ABOUT THIS POINT
-    if(len(firewalls)) == desired_number_of_firewalls:
-        break
-    
-    #typical binary tree logic
-    elif len(firewalls) > desired_number_of_firewalls:
-        _high = mid - 1
+    # if the number of firewalls is met, then break, NOT SURE ABOUT THIS POINT
+    # if(len(firewalls)) == desired_number_of_firewalls:
+    #     break
+
+    # typical binary tree logic
+    if len(firewalls) > desired_number_of_firewalls:
+        _high = mid -1
 
     else:
-        _low = mid + 1
+        _low = mid +1
 
 
 print(cluster_to_firewalls_buffer)
