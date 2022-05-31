@@ -1,2 +1,6 @@
-possible_num_of_clusters = [i for i in range(2, 17)]
-print(possible_num_of_clusters)
+a = [ 1,2,3]
+b = [2,3,4]
+
+
+for i,j in enumerate(b):
+    print(i,j)

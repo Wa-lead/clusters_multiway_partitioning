@@ -102,13 +102,14 @@ while _high >= _low:
     while i < num_of_clusters:
         startAgain = False
         for group in array_of_groups[i].connectedGroup:
-            indicator = two_way_partitioning(
-                array_of_groups[i], array_of_groups[group], edge_matrix, groups_)
+            indicator = two_way_partitioning_enhanced(
+                array_of_groups[i], array_of_groups[group],groups_)
             if indicator > 0:
+                startAgain = True
                 array_of_groups[i].find_connected_groups()
                 array_of_groups[group].find_connected_groups()
-                startAgain = True
         i = 0 if startAgain else i + 1
+    print('ddd')
 
     for group in array_of_groups:
         group.find_connected_groups()

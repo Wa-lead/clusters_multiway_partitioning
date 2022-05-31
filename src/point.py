@@ -15,7 +15,7 @@ class Point():
         point.connected_points.append(self)
 
     def __repr__(self):
-            return f'index: {self.index}'
+            return f'{(int(self.x),int(self.y))}'
 
     def __copy__(self):
         cls = self.__class__

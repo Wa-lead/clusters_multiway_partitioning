@@ -16,6 +16,7 @@ class Group():
     
     def find_connected_groups(self):
         self.connectedGroup = []
+        self.outerPoints = []
         for point1 in self.points:
             for point2 in point1.connected_points:
                 if point2.group != self.name:
