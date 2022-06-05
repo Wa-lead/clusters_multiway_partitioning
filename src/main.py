@@ -71,6 +71,10 @@ edge_matrix = form_edge_matrix(array_of_points, connect_distance)
 for group in array_of_groups:
     group.find_connected_groups()
 
+plot_points(ax[0], x, y, groups_, array_of_groups)
+plot_firewalls(ax[0], array_of_groups, protect='self')
+plot_borders(ax[0], xMax, xMin, yMax, yMin)
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Multi-way Partioning
@@ -89,9 +93,6 @@ while i < num_of_clusters:
 print('done')
 edgeMatrixCopy = deepcopy(edge_matrix)
 
-plot_points(ax[0], x, y, groups_, array_of_groups)
-plot_firewalls(ax[0], array_of_groups, protect='connected')
-plot_borders(ax[0], xMax, xMin, yMax, yMin)
 
 # # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,8 +104,8 @@ i = 0
 while i < num_of_clusters:
     startAgain = False
     for group in array_of_groups[i].connectedGroup:
-        indicator = one_way_partioning(
-            array_of_groups[i], array_of_groups[group], edge_matrix, groups_, numbPoints/num_of_clusters, 0.1)
+        indicator = one_way_partioning_enhanced(
+            array_of_groups[i], array_of_groups[group],groups_, numbPoints/num_of_clusters, 0.1)
         if indicator > 0:
             startAgain = True
         array_of_groups[i].find_connected_groups()

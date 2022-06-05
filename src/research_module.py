@@ -309,15 +309,18 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
                             legalSizeUpperBoundery - len(B.points)))
     i = 0
     while i < loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
-        A_B_connections = set([])
-        B_A_connections = set([])
+        A_B_connections = set()
+        B_A_connections = set()
         
+
+        # detect the common conncections betweent the two groups
         for p in subsetACopy.outerPoints:
             for j in p.connected_points:
                 if j.group == groupB:
                     A_B_connections.add(p)
                     B_A_connections.add(j)
 
+        # If there are no connections between the two groups then end the process
         if not A_B_connections or not B_A_connections:
             break
 
@@ -364,6 +367,81 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
 
     return indicator
 
+def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
+    legalSizeUpperBoundery = def_size + def_size * legal_increaserese
+    legalSizeLowerBoundery = def_size - def_size * legal_increaserese
+    groupA = A.name
+    groupB = B.name
+    indicator = 0
+
+    # create deepcopies so we can modify those copies in the iteration withougt affecting the original sets
+    subsetACopy = deepcopy(A)
+    subsetBCopy = deepcopy(B)
+
+    GBuffer = []
+    A_to_B_candidates = []
+    G = 0
+    # print((A.name,len(subsetA.points) - legalSizeLowerBoundery), (B.name,  legalSizeUpperBoundery - len(subsetB.points)))
+    loopThreshold = int(min(len(A.points) - legalSizeLowerBoundery,
+                            legalSizeUpperBoundery - len(B.points)))
+    i = 0
+    while i < loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
+        A_B_connections = set()
+        B_A_connections = set()
+        
+
+        # detect the common conncections betweent the two groups
+        for p in subsetACopy.outerPoints:
+            for j in p.connected_points:
+                if j.group == groupB:
+                    A_B_connections.add(p)
+                    B_A_connections.add(j)
+
+        # If there are no connections between the two groups then end the process
+        if not A_B_connections or not B_A_connections:
+            break
+
+        for point in A_B_connections:
+            ineternalCost = 0
+            externalCost = 0
+            # length of both subsets are the same
+            for point2 in point.connected_points:
+                if point2.group == groupA:
+                    ineternalCost += 1 
+                elif point2.group == groupB:
+                    externalCost += 1
+            point.Dvalue = externalCost - ineternalCost
+
+
+        # find the highest candidate for interchange
+        # candidate = max(subsetACopy.outerPoints, key= lambda x: (x.Dvalue,len(x.connected_points)))
+        candidate = max(subsetACopy.outerPoints, key=lambda x: x.Dvalue)
+        G += candidate.Dvalue  # add it to the gain
+        # this buffers the current interchanged points
+        A_to_B_candidates.append(candidate)
+        subsetACopy.remove_outer_point(candidate)
+        subsetBCopy.append_outer_point(candidate)
+        # buffers both gain and the current interchanged points
+        GBuffer.append(
+            {'G': G, 'A_to_B_candidates': A_to_B_candidates.copy()})
+        subsetBCopy.find_connected_groups()  # must update the groups_
+        subsetACopy.find_connected_groups()
+        i += 1
+
+    if(GBuffer):  # if the above process ocurred GBuffer would've stored something
+        bestGain = max(GBuffer, key=lambda x: x['G'])
+        if bestGain['G'] > 0:  # if the highest buffered gain is positive
+            # the reason behind creating this is that the current interchanged points are deep copies and are not stored by reference.
+            for point in bestGain['A_to_B_candidates']:
+                for point2 in A.outerPoints:
+                    if point.index == point2.index:
+                        B.append_outer_point(point2)
+                        groups_[point2.index] = groupB
+                        A.remove_outer_point(point2)
+
+            indicator += 1  # indicates the change has happened
+
+    return indicator
 # ------- firewalls related
 
 

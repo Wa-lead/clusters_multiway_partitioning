@@ -77,7 +77,7 @@ index = 0  # <--- just for plutting purposes
 while _high >= _low:
 
     mid = floor((_low+_high)/2)  # calculate the mid for splitting purposes
-    num_of_clusters = mid
+    num_of_clusters = possible_num_of_clusters[mid]
 
     # divide the current points into clusters
     groups_ = divide_even_clusters(x, y, num_of_clusters)
