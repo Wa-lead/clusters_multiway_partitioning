@@ -7,8 +7,7 @@ from math import *
 
 sys.setrecursionlimit(1000000)
 
-
-# ---- setup the problem formulation
+#---- setup the problem formulation
 
 def form_edge_matrix(array_of_points, connect_distance):
     numbPoints = len(array_of_points)
@@ -28,7 +27,6 @@ def form_edge_matrix(array_of_points, connect_distance):
 
     return edge_matrix
 
-
 def divide_even_clusters(x, y, num_of_clusters):  # done
     numbPoints = len(x)
     changeFormatArray = []
@@ -40,7 +38,6 @@ def divide_even_clusters(x, y, num_of_clusters):  # done
     kmeans.fit(X)
     return kmeans.labels_
 
-
 def get_cluster_points(num_of_clusters, array_of_points):  # done
     array_of_subsets = []
     for i in range(num_of_clusters):
@@ -51,7 +48,6 @@ def get_cluster_points(num_of_clusters, array_of_points):  # done
     return array_of_subsets
 
 #---- paritioing
-
 
 def two_way_partitioning(A, B, edge_matrix, groups_):
     subsetA = A
@@ -289,8 +285,6 @@ def two_way_partitioning_enhanced(A, B, groups_):
  
     return indicator
 
-
-
 def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese):
     legalSizeUpperBoundery = def_size + def_size * legal_increaserese
     legalSizeLowerBoundery = def_size - def_size * legal_increaserese
@@ -414,8 +408,7 @@ def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
 
 
         # find the highest candidate for interchange
-        # candidate = max(subsetACopy.outerPoints, key= lambda x: (x.Dvalue,len(x.connected_points)))
-        candidate = max(subsetACopy.outerPoints, key=lambda x: x.Dvalue)
+        candidate = selection_hueristic(subsetACopy.outerPoints, GBuffer[-1]['A_to_B_candidates'] if GBuffer else [])
         G += candidate.Dvalue  # add it to the gain
         # this buffers the current interchanged points
         A_to_B_candidates.append(candidate)
@@ -442,8 +435,23 @@ def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
             indicator += 1  # indicates the change has happened
 
     return indicator
-# ------- firewalls related
 
+def selection_hueristic(current_candidates, buffered_candidates):
+    # (Dvalue, common points between its connectect points and already selected ones)
+    return max(current_candidates, key= lambda x: (x.Dvalue,len(set(x.connected_points) & set(buffered_candidates))))
+
+def cluster_size(point, legalSizeUpperBoundery, group, current_points):
+    if len(current_points) >= legalSizeUpperBoundery -  len(group.points):
+        return float('inf')
+    else if current_points 
+    for p in point.connected_points:
+        if()
+        current_points = current_points | p.connected_points
+        return cluster_size(p, legalSizeUpperBoundery, group, current_points)
+    else:
+
+    
+#---- firewalls related
 
 def find_firewalls(array_of_subsets, protect=None):
     if protect == 'self' or protect == None:
@@ -451,7 +459,6 @@ def find_firewalls(array_of_subsets, protect=None):
         # ------------------------------- this is another variation that protects the connected nodes
     elif protect == 'connected':
         return connceted_defense_variation_noEdges(array_of_subsets)
-
 
 def find_potential_firewalls(array_of_subsets):
     arrayOfEdgePoints = []
@@ -468,7 +475,6 @@ def find_potential_firewalls(array_of_subsets):
                 {'point': point, 'outerEdges': outerEdges})
 
     return potentialFirewalls
-
 
 def self_defense_variation(array_of_subsets):
     actualFirewalls = []
@@ -504,7 +510,6 @@ def self_defense_variation(array_of_subsets):
                 potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
     return actualFirewalls, protectedEdges
-
 
 def connceted_defense_variation(array_of_subsets):
     actualFirewalls = []
@@ -553,7 +558,6 @@ def connceted_defense_variation(array_of_subsets):
                 potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
     return actualFirewalls, protectedEdges
-
 
 def connceted_defense_variation_noEdges(array_of_subsets):
     actualFirewalls = []

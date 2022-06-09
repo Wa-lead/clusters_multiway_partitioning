@@ -9,7 +9,7 @@ from point import Point
 from plot import *
 
 
-fig, ax = plt.subplots(2, figsize=(7, 12))
+fig, ax = plt.subplots(ncols = 2, figsize=(10, 5))
 # fig, ax = plt.subplots(2, figsize=(4,7))
 connect_distance = 1
 num_of_clusters = 3
@@ -57,8 +57,7 @@ for i in range(numbPoints):
     1: Normal 
     2: Protected --> protects itself and it's edges (not a firewall) <---- this is used in the second approach of firewalls
     """
-    array_of_points.append(Point(groups_[i], i, x[i], y[i], 1, 0)
-                           )
+    array_of_points.append(Point(groups_[i], i, x[i], y[i], 1, 0))
 
 array_of_groups = get_cluster_points(num_of_clusters, array_of_points)
 
@@ -83,14 +82,13 @@ while i < num_of_clusters:
     startAgain = False
     for group in array_of_groups[i].connectedGroup:
         indicator = two_way_partitioning_enhanced(
-            array_of_groups[i], array_of_groups[group],groups_)
+            array_of_groups[i], array_of_groups[group], groups_)
         if indicator > 0:
             startAgain = True
             array_of_groups[i].find_connected_groups()
             array_of_groups[group].find_connected_groups()
     i = 0 if startAgain else i + 1
 
-print('done')
 edgeMatrixCopy = deepcopy(edge_matrix)
 
 
@@ -105,7 +103,7 @@ while i < num_of_clusters:
     startAgain = False
     for group in array_of_groups[i].connectedGroup:
         indicator = one_way_partioning_enhanced(
-            array_of_groups[i], array_of_groups[group],groups_, numbPoints/num_of_clusters, 0.1)
+            array_of_groups[i], array_of_groups[group], groups_, numbPoints/num_of_clusters, 0.1)
         if indicator > 0:
             startAgain = True
         array_of_groups[i].find_connected_groups()
