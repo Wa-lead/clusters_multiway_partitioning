@@ -1,6 +1,6 @@
 import numpy as np
 from research_module import *
-
+import plotly.express as px
 
 def plot_points(ax, x, y, groups_, array_of_groups):
 
@@ -16,8 +16,8 @@ def plot_points(ax, x, y, groups_, array_of_groups):
 
     return ax
 
-
 def plot_firewalls(ax, array_of_groups, protect):
+
 
     if protect == 'self':
         firewalls, edges = find_firewalls(array_of_groups, protect)
@@ -56,7 +56,6 @@ def plot_firewalls(ax, array_of_groups, protect):
             ax.scatter(X[:, 0], X[:, 1], c='orange')
 
     return ax
-
 
 def plot_borders(ax, xMax, xMin, yMax, yMin):
 

@@ -440,15 +440,15 @@ def selection_hueristic(current_candidates, buffered_candidates):
     # (Dvalue, common points between its connectect points and already selected ones)
     return max(current_candidates, key= lambda x: (x.Dvalue,len(set(x.connected_points) & set(buffered_candidates))))
 
-def cluster_size(point, legalSizeUpperBoundery, group, current_points):
-    if len(current_points) >= legalSizeUpperBoundery -  len(group.points):
-        return float('inf')
-    else if current_points 
-    for p in point.connected_points:
-        if()
-        current_points = current_points | p.connected_points
-        return cluster_size(p, legalSizeUpperBoundery, group, current_points)
-    else:
+# def cluster_size(point, legalSizeUpperBoundery, group, current_points):
+#     if len(current_points) >= legalSizeUpperBoundery -  len(group.points):
+#         return float('inf')
+#     else if current_points 
+#     for p in point.connected_points:
+#         if()
+#         current_points = current_points | p.connected_points
+#         return cluster_size(p, legalSizeUpperBoundery, group, current_points)
+#     else:
 
     
 #---- firewalls related
