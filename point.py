@@ -9,10 +9,11 @@ class Point():
         self.state = state
         self.Dvalue = Dvalue
         self.connected_points = []
-    
+
     def connect(self, point): 
         self.connected_points.append(point)
         point.connected_points.append(self)
+        self.connected_points = list(set(self.connected_points))
 
     def __repr__(self):
             return f'{(int(self.x),int(self.y))}'

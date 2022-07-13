@@ -148,27 +148,25 @@ def two_way_partitioning(A, B, edge_matrix, groups_):
 
         if(GBuffer[0]['G'] <= 0.000000000001):
             break
+            # create a function that deletes outer points and delete it from points too
+            for point in GBuffer[0]['Xstar']:
+                subsetA.remove_outer_point(point)
+                subsetB.append_outer_point(point)
 
+            for point in GBuffer[0]['Ystar']:
+                subsetB.remove_outer_point(point)
+                subsetA.append_outer_point(point)
 
-# create a function that deletes outer points and delete it from points too
-        for point in GBuffer[0]['Xstar']:
-            subsetA.remove_outer_point(point)
-            subsetB.append_outer_point(point)
+            # add the interchanged points to their new sets
+            indicator = indicator + 1
 
-        for point in GBuffer[0]['Ystar']:
-            subsetB.remove_outer_point(point)
-            subsetA.append_outer_point(point)
+            for point in subsetA.outerPoints:  # update the group array
+                groups_[point.index] = groupA
 
-        # add the interchanged points to their new sets
-        indicator = indicator + 1
+            for point in subsetB.outerPoints:  # update the group array
+                groups_[point.index] = groupB
 
-        for point in subsetA.outerPoints:  # update the group array
-            groups_[point.index] = groupA
-
-        for point in subsetB.outerPoints:  # update the group array
-            groups_[point.index] = groupB
-
-    return indicator
+        return indicator
 
 def two_way_partitioning_enhanced(A, B, groups_):
     subsetA = A
@@ -201,6 +199,8 @@ def two_way_partitioning_enhanced(A, B, groups_):
                     externalCost += 1
             point.Dvalue = externalCost - ineternalCost
 
+
+        #this changes the set to a list for order purposes
         subsetA.outerPoints = sorted(
             subsetA.outerPoints, key=lambda x: x.Dvalue, reverse=True)
         subsetB.outerPoints = sorted(
@@ -262,32 +262,41 @@ def two_way_partitioning_enhanced(A, B, groups_):
 
         # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # remove highest gain exchanges from the subsetA and subsetB
-        GBuffer = max(GBuffer, key=lambda x: x['G'])
+        if GBuffer:
+            GBuffer = max(GBuffer, key=lambda x: x['G'])
 
-        if(GBuffer['G'] <= 0.000000000001):
-            break
+            if(GBuffer['G'] <= 0.000000000001):
+                break
 
-        for point in GBuffer['Xstar']:
-            subsetA.remove_outer_point(point)
-            subsetB.append_outer_point(point)
-            groups_[point.index] = groupB
+            for point in GBuffer['Xstar']:
+                #convert back to set
+                subsetB.outerPoints = set(subsetB.outerPoints)
+                subsetA.outerPoints = set(subsetA.outerPoints)
 
-
-        for point in GBuffer['Ystar']:
-            subsetB.remove_outer_point(point)
-            subsetA.append_outer_point(point)
-            groups_[point.index] = groupA
+                subsetA.remove_outer_point(point)
+                subsetB.append_outer_point(point)
+                groups_[point.index] = groupB
 
 
-        # add the interchanged points to their new sets
-        indicator = indicator + 1
+            for point in GBuffer['Ystar']:
+                #convert back to set
+                subsetB.outerPoints = set(subsetB.outerPoints)
+                subsetA.outerPoints = set(subsetA.outerPoints)
 
- 
+                subsetB.remove_outer_point(point)
+                subsetA.append_outer_point(point)
+                groups_[point.index] = groupA
+
+
+            # add the interchanged points to their new sets
+            indicator = indicator + 1
+
+    
     return indicator
 
 def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese):
-    legalSizeUpperBoundery = def_size + def_size * legal_increaserese
-    legalSizeLowerBoundery = def_size - def_size * legal_increaserese
+    UPPER_BOUND = def_size + def_size * legal_increaserese
+    LOWER_BOUND = def_size - def_size * legal_increaserese
     groupB = B.name
     indicator = 0
 
@@ -298,9 +307,9 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
     GBuffer = []
     A_to_B_candidates = []
     G = 0
-    # print((A.name,len(subsetA.points) - legalSizeLowerBoundery), (B.name,  legalSizeUpperBoundery - len(subsetB.points)))
-    loopThreshold = int(min(len(A.points) - legalSizeLowerBoundery,
-                            legalSizeUpperBoundery - len(B.points)))
+    # print((A.name,len(subsetA.points) - LOWER_BOUND), (B.name,  UPPER_BOUND - len(subsetB.points)))
+    loopThreshold = int(min(len(A.points) - LOWER_BOUND,
+                            UPPER_BOUND - len(B.points)))
     i = 0
     while i < loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
         A_B_connections = set()
@@ -361,40 +370,83 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
 
     return indicator
 
+
+def cluster_size(point):
+    seen_points = set()
+    cluster_content = []
+    def dfs(point):
+        for p in point.connected_points:
+            if p in seen_points or p.group != point.group:
+                continue
+            seen_points.add(p)
+            cluster_content.append(p)
+            dfs(p)
+
+    dfs(point)
+    return len(cluster_content)
+
+def selection_hueristic1(current_candidates,threshold):   
+    # print(threshold) 
+
+    def hueristic(point):
+        size = cluster_size(point) 
+        if size > threshold:
+            return float('-inf')
+        else:
+            return point.Dvalue
+
+    return max(current_candidates, key= hueristic)
+
+def selection_hueristic2(current_candidates):    
+    return max(current_candidates, key = lambda x : x.Dvalue)
+
+def selection_hueristic3(current_candidates, buffered_candidates):
+    # (Dvalue, common points between its connectect points and already selected ones)
+    return max(current_candidates, key= lambda x: (x.Dvalue,len(set(x.connected_points) & set(buffered_candidates))))
+
 def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
-    legalSizeUpperBoundery = def_size + def_size * legal_increaserese
-    legalSizeLowerBoundery = def_size - def_size * legal_increaserese
+    """
+    from A to B
+    """
+
+    #Define the coundaries
+    UPPER_BOUND = int(def_size + def_size * legal_increaserese)
+    LOWER_BOUND = int(def_size - def_size * legal_increaserese)
+
     groupA = A.name
     groupB = B.name
+
+    # used to show if an interchanged occured between the two groups
     indicator = 0
 
     # create deepcopies so we can modify those copies in the iteration withougt affecting the original sets
     subsetACopy = deepcopy(A)
     subsetBCopy = deepcopy(B)
 
+    #buffers each iteration
     GBuffer = []
     A_to_B_candidates = []
+    #Total gain
     G = 0
-    # print((A.name,len(subsetA.points) - legalSizeLowerBoundery), (B.name,  legalSizeUpperBoundery - len(subsetB.points)))
-    loopThreshold = int(min(len(A.points) - legalSizeLowerBoundery,
-                            legalSizeUpperBoundery - len(B.points)))
+
+    loopThreshold = int(min(len(A.points) - LOWER_BOUND,
+                            UPPER_BOUND - len(B.points)))
     i = 0
-    while i < loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
+    while i <= loopThreshold and subsetACopy.outerPoints and subsetBCopy.outerPoints:
         A_B_connections = set()
-        B_A_connections = set()
         
 
-        # detect the common conncections betweent the two groups
+        # detect the conncections betweent the two groups
         for p in subsetACopy.outerPoints:
             for j in p.connected_points:
                 if j.group == groupB:
                     A_B_connections.add(p)
-                    B_A_connections.add(j)
 
         # If there are no connections between the two groups then end the process
-        if not A_B_connections or not B_A_connections:
+        if not A_B_connections:
             break
-
+        
+        #calculates the D-value for the connected points
         for point in A_B_connections:
             ineternalCost = 0
             externalCost = 0
@@ -406,15 +458,19 @@ def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
                     externalCost += 1
             point.Dvalue = externalCost - ineternalCost
 
-
         # find the highest candidate for interchange
-        candidate = selection_hueristic(subsetACopy.outerPoints, GBuffer[-1]['A_to_B_candidates'] if GBuffer else [])
+        # candidate = selection_hueristic1(A_B_connections, loopThreshold - i )
+        candidate = selection_hueristic2(A_B_connections)
+        # candidate = selection_hueristic3(A_B_connections, GBuffer[-1]['A_to_B_candidates'] if  GBuffer else [])
+
+        
         G += candidate.Dvalue  # add it to the gain
         # this buffers the current interchanged points
         A_to_B_candidates.append(candidate)
         subsetACopy.remove_outer_point(candidate)
         subsetBCopy.append_outer_point(candidate)
         # buffers both gain and the current interchanged points
+        
         GBuffer.append(
             {'G': G, 'A_to_B_candidates': A_to_B_candidates.copy()})
         subsetBCopy.find_connected_groups()  # must update the groups_
@@ -426,7 +482,7 @@ def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
         if bestGain['G'] > 0:  # if the highest buffered gain is positive
             # the reason behind creating this is that the current interchanged points are deep copies and are not stored by reference.
             for point in bestGain['A_to_B_candidates']:
-                for point2 in A.outerPoints:
+                for point2 in list(A.outerPoints):
                     if point.index == point2.index:
                         B.append_outer_point(point2)
                         groups_[point2.index] = groupB
@@ -436,19 +492,7 @@ def one_way_partioning_enhanced(A, B, groups_, def_size, legal_increaserese):
 
     return indicator
 
-def selection_hueristic(current_candidates, buffered_candidates):
-    # (Dvalue, common points between its connectect points and already selected ones)
-    return max(current_candidates, key= lambda x: (x.Dvalue,len(set(x.connected_points) & set(buffered_candidates))))
 
-# def cluster_size(point, legalSizeUpperBoundery, group, current_points):
-#     if len(current_points) >= legalSizeUpperBoundery -  len(group.points):
-#         return float('inf')
-#     else if current_points 
-#     for p in point.connected_points:
-#         if()
-#         current_points = current_points | p.connected_points
-#         return cluster_size(p, legalSizeUpperBoundery, group, current_points)
-#     else:
 
     
 #---- firewalls related
@@ -463,8 +507,8 @@ def find_firewalls(array_of_subsets, protect=None):
 def find_potential_firewalls(array_of_subsets):
     arrayOfEdgePoints = []
     for group in array_of_subsets:
-        if(group.outerPoints):
-            arrayOfEdgePoints = arrayOfEdgePoints + group.outerPoints
+        if group.outerPoints:
+            arrayOfEdgePoints = arrayOfEdgePoints + list(group.outerPoints)
 
     potentialFirewalls = []
     if arrayOfEdgePoints:
@@ -508,7 +552,6 @@ def self_defense_variation(array_of_subsets):
             # Sort the current potientials based on number of outer edges again
             potentialFirewalls = sorted(
                 potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
-
     return actualFirewalls, protectedEdges
 
 def connceted_defense_variation(array_of_subsets):
@@ -553,7 +596,7 @@ def connceted_defense_variation(array_of_subsets):
             potentialFirewalls = [
                 firewall for firewall in potentialFirewalls if firewall['point'].state != 2]
 
-            # Sort the current potientials based on number of outer edges again
+            # Sort the current potientials based on number of outer edges again            
             potentialFirewalls = sorted(
                 potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
@@ -602,3 +645,9 @@ def connceted_defense_variation_noEdges(array_of_subsets):
                 potentialFirewalls, key=lambda x: len(x['outerEdges']), reverse=True)
 
     return actualFirewalls, protected_points
+
+
+"""
+should i put gain and x_star in while True ?
+
+"""

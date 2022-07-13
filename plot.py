@@ -5,6 +5,10 @@ import plotly.express as px
 def plot_points(ax, x, y, groups_, array_of_groups):
 
     ax.scatter(x, y, c=groups_, cmap='rainbow')
+    
+    return ax
+
+def plot_edges(ax,array_of_groups, color='black'):
 
     # to plot edges
     for group in array_of_groups:
@@ -12,8 +16,7 @@ def plot_points(ax, x, y, groups_, array_of_groups):
             x1, y1 = (point1.x, point1.y)
             for point2 in point1.connected_points:
                 x2, y2 = (point2.x, point2.y)
-                ax.plot((x1, x2), (y1, y2), 'black')
-
+                ax.plot((x1, x2), (y1, y2), color)
     return ax
 
 def plot_firewalls(ax, array_of_groups, protect):
