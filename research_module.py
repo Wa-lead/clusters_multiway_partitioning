@@ -307,7 +307,6 @@ def one_way_partioning(A, B, edge_matrix, groups_, def_size, legal_increaserese)
     GBuffer = []
     A_to_B_candidates = []
     G = 0
-    # print((A.name,len(subsetA.points) - LOWER_BOUND), (B.name,  UPPER_BOUND - len(subsetB.points)))
     loopThreshold = int(min(len(A.points) - LOWER_BOUND,
                             UPPER_BOUND - len(B.points)))
     i = 0
@@ -386,7 +385,6 @@ def cluster_size(point):
     return len(cluster_content)
 
 def selection_hueristic1(current_candidates,threshold):   
-    # print(threshold) 
 
     def hueristic(point):
         size = cluster_size(point) 
