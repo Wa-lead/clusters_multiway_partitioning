@@ -1,6 +1,6 @@
 import numpy as np
 from research_module import *
-import plotly.express as px
+from firewalls import *
 
 def plot_points(ax, x, y, groups_, array_of_groups):
 
